@@ -7,6 +7,7 @@ from rll_planning_project.msg import *
 from geometry_msgs.msg import Pose2D
 from heapq import heappush, heappop # for priority queue
 import math
+import userUtils
 
 def plan_to_goal(req):
     """ Plan a path from Start to Goal """
@@ -17,7 +18,6 @@ def plan_to_goal(req):
     pose_move = Pose2D()
 
     rospy.loginfo("Got a planning request")
-    
 
     pose_start = req.start
     pose_goal = req.goal
@@ -25,26 +25,38 @@ def plan_to_goal(req):
     move_srv = rospy.ServiceProxy('move', Move)
     check_srv = rospy.ServiceProxy('check_path', CheckPath, persistent=True)
 
-    ###############################################
-    # Implement your path planning algorithm here #
-    ###############################################
-
     # Input: map dimensions, start pose, and goal pose
     # retrieving input values  
     map_width = rospy.get_param('~map_width')
     map_length = rospy.get_param('~map_length')
     xStart, yStart, tStart = pose_start.x, pose_start.y, pose_start.theta
     xGoal, yGoal, tGoal = pose_goal.x, pose_goal.y, pose_goal.theta
-    xGoal2, yGoal2, tGoal2 = pose_goal.x, pose_goal.y-0.5, pose_goal.theta
 
     # printing input values
     rospy.loginfo("map dimensions: width=%1.2fm, length=%1.2fm", map_width, map_length)
+    print("map dimensions: width=%1.2fm, length=%1.2fm", map_width, map_length)
     rospy.loginfo("start pose: x %f, y %f, theta %f", xStart, yStart, tStart)
     print("start pose: x %f, y %f, theta %f", xStart, yStart, tStart)
     rospy.loginfo("goal pose: x %f, y %f, theta %f", xGoal, yGoal, tGoal)
     print("goal pose: x %f, y %f, theta %f", xGoal, yGoal, tGoal)
 
-    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+
+    #################
+    # RRT Algorithm #
+    #################
+
+    numSamples = 500
+    distResolution = 0.1
+    distResolutionCorrection = 0.3 # Later for RRT*
+    bReachedGoal = False
+
+    ctr = 0
+    while(ctr <= numSamples or !bReachedGoal):
+
+
+
+
+
     # Output: movement commands
     pose_check_start.x, pose_check_start.y, pose_check_start.theta= xStart, yStart, tStart
     pose_check_goal.x, pose_check_goal.y, pose_check_goal.theta= xGoal, yGoal, tGoal
@@ -56,23 +68,10 @@ def plan_to_goal(req):
         resp = move_srv(pose_move)
     else:
         rospy.loginfo("Invalid pose")
-
-    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-    # Output: movement commands
-    pose_check_start.x, pose_check_start.y, pose_check_start.theta= xStart, yStart, tStart
-    pose_check_goal.x, pose_check_goal.y, pose_check_goal.theta= xGoal2, yGoal2, tGoal2
-    resp = check_srv(pose_check_start, pose_check_goal) # checking if the arm can move to the goal pose
-    if resp.valid:
-        rospy.loginfo("Valid pose")
-        pose_move.x, pose_move.y, pose_move.theta = xGoal2, yGoal2, tGoal2 
-        # executing a move command towards the goal pos
-        resp = move_srv(pose_move)
-    else:
-        rospy.loginfo("Invalid pose")
         
-    ###############################################
+    ####################
     # End of Algorithm #
-    ###############################################
+    ####################
 
 
 class PathPlanner:
