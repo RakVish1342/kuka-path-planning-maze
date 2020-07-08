@@ -7,6 +7,8 @@ from rll_planning_project.msg import *
 from geometry_msgs.msg import Pose2D
 from heapq import heappush, heappop # for priority queue
 import math
+import random
+import numpy as np
 import userUtils
 
 def plan_to_goal(req):
@@ -46,14 +48,58 @@ def plan_to_goal(req):
     #################
 
     numSamples = 500
-    distResolution = 0.1
-    distResolutionCorrection = 0.3 # Later for RRT*
+    distSearch = 0.2 #
+    distCorrection = 0.3 # Later for RRT*
     bReachedGoal = False
 
+     # Initialize kdtree with root at start location 
+    rrt = userUtils.KDTree(value=(xStart, yStart))
+
+    '''
+    Uses midPoint formula to find a new sample point along sample and closest that is 
+    within the given threshold
+    '''
+    def findPointAlongLine(closest, sample, distThresh):
+        dist = userUtils.distance(closest, sample)
+        while(dist > distThresh):
+            # midPoint acts like new sample
+            sample = ( (closest[0]+sample[0])/2, (closest[1]+sample[1])/2 )
+            dist = userUtils.distance(closest, sample)
+        return sample
+
     ctr = 0
-    while(ctr <= numSamples or !bReachedGoal):
+    while(ctr <= numSamples or ~bReachedGoal):
 
+        # Sample a point
+        sign = random.randint(0,1)
+        if(sign):
+            sign = 1
+        else:
+            sign = -1
+        x = sign * random.uniform(0,map_width/2)
+        sign = random.randint(0,1)
+        if(sign):
+            sign = 1
+        else:
+            sign = -1        
+        y = sign * random.uniform(0,map_length/2)
+        sample = (x, y)
 
+        closest, distFlag = rrt.search(sample, distSearch)
+
+        print("@@@@@@@@@@@@@@@")
+        print(closest, sample)
+
+        # If sample is not within distSearch away from closest point in rrt, 
+        # Find a point along the line from closest point to sample point, which 
+        # is at a given dist away from closest point
+        if(~distFlag):
+            sample = findPointAlongLine(closest, sample, distSearch)
+
+        print("@@@@@@@@@@@@@@@")
+        print(closest, sample)
+
+        break
 
 
 
