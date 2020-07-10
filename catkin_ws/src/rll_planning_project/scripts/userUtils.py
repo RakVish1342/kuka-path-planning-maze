@@ -46,7 +46,7 @@ class KDTree:
                     else: # continue on with the search of empty node
                         node = node.childLeft
 
-                if(nodeIns.val[0] > node.val[0]):
+                else:
                     if(node.childRight is None):
                         node.childRight = nodeIns
                         break
@@ -61,7 +61,7 @@ class KDTree:
                     else:
                         node = node.childLeft
 
-                if(nodeIns.val[1] > node.val[1]):
+                else:
                     if(node.childRight is None):
                         node.childRight = nodeIns
                         break
@@ -85,7 +85,7 @@ class KDTree:
         ## Change distance metric to account for this if so
         node = self.root
         depth = 0
-        points = []
+        nodes = []
         dists = []
         distFlag = False
 
@@ -101,21 +101,21 @@ class KDTree:
                 # Don't just directly concider the first point to be the closest/valid point. 
                 # Multiple may satisfy distance requirement. So add all that satisfy to a list
                 # Pick best from list at the end.
-                points.append(node.val)
+                nodes.append(node)
                 dists.append(dist)
                 distFlag = True
 
             if(depth%2 == 0): # Compare x coordinates
                 if(nodeSearch.val[0] <= node.val[0]):
                     if(node.childLeft is None): # Just return the latest node
-                        points.append(node.val)
+                        nodes.append(node)
                         break
                     else: # continue on with the search of empty node
                         node = node.childLeft
 
-                if(nodeSearch.val[0] > node.val[0]):
+                else:
                     if(node.childRight is None):
-                        points.append(node.val)
+                        nodes.append(node)
                         break
                     else:
                         node = node.childRight
@@ -123,14 +123,14 @@ class KDTree:
             else: # Compare y coordinates
                 if(nodeSearch.val[1] <= node.val[1]):
                     if(node.childLeft is None):
-                        points.append(node.val)
+                        nodes.append(node)
                         break
                     else:
                         node = node.childLeft
 
-                if(nodeSearch.val[1] > node.val[1]):
+                else:
                     if(node.childRight is None):
-                        points.append(node.val)
+                        nodes.append(node)
                         break
                     else:
                         node = node.childRight
@@ -138,22 +138,22 @@ class KDTree:
             depth += 1
         
         ''' 
-        Find closest point among short listed points
+        Find closest node among shortlisted nodes
         '''
-        def findClosest(points, dists):
+        def findClosest(nodes, dists):
             minLoc = np.argmin(dists)
-            return points[minLoc]
+            return nodes[minLoc]
 
-        if(len(points) == 1):
-            point = points[0]
+        if(len(nodes) == 1):
+            node = nodes[0]
         else:
             # If multiple entries exist, means atleast one optimal pt exist. So exclude the 
-            # last added sub-optimal point due to reaching the None branch. This way points
+            # last added sub-optimal point due to reaching the None branch. This way nodes
             # and dists will be of equal length
-            points = points[0:-1]
-            point = findClosest(points, dists)
+            nodes = nodes[0:-1]
+            node = findClosest(nodes, dists)
 
-        return (point, distFlag)
+        return (node, distFlag)
 
             
         

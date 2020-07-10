@@ -14,24 +14,24 @@ nd = Node(value=(4,4))
 kdtree.insert(nd)
 
 nd = Node(value=(2,2))
-(pt, flag) = kdtree.search(nd, 2)
-print(pt, " ", flag)
+(nd, flag) = kdtree.search(nd, 2)
+print(nd.val, " ", flag)
 
 nd = Node(value=(2.1,2.1))
-(pt, flag) = kdtree.search(nd, 2)
-print(pt, " ", flag)
+(nd, flag) = kdtree.search(nd, 2)
+print(nd.val, " ", flag)
 
 nd = Node(value=(3.1,3.1))
-(pt, flag) = kdtree.search(nd, 0.2)
-print(pt, " ", flag)
+(nd, flag) = kdtree.search(nd, 0.2)
+print(nd.val, " ", flag)
 
 nd = Node(value=(-13,-13))
-(pt, flag) = kdtree.search(nd, 999)
-print(pt, " ", flag)
+(nd, flag) = kdtree.search(nd, 999)
+print(nd.val, " ", flag)
 
 nd = Node(value=(-13,-13))
-(pt, flag) = kdtree.search(nd, 0.2)
-print(pt, " ", flag)
+(nd, flag) = kdtree.search(nd, 0.2)
+print(nd.val, " ", flag)
 
 # pdb.set_trace()
 

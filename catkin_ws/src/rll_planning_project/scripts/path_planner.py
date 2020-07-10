@@ -7,9 +7,14 @@ from rll_planning_project.msg import *
 from geometry_msgs.msg import Pose2D
 from heapq import heappush, heappop # for priority queue
 import math
+
+from visualization_msgs.msg import Marker
+from visualization_msgs.msg import MarkerArray
+from geometry_msgs.msg import Pose
 import random
 import numpy as np
 import userUtils
+
 
 def plan_to_goal(req):
     """ Plan a path from Start to Goal """
@@ -46,18 +51,9 @@ def plan_to_goal(req):
     #################
     # RRT Algorithm #
     #################
-
-    numSamples = 500
-    distSearch = 0.2 #
-    distCorrection = 0.3 # Later for RRT*
-    bReachedGoal = False
-
-     # Initialize kdtree with root at start location 
-    rrt = userUtils.KDTree(value=(xStart, yStart))
-
     '''
     Uses midPoint formula to find a new sample point along sample and closest that is 
-    within the given threshold
+    within the given threshold.
     '''
     def findPointAlongLine(closest, sample, distThresh):
         dist = userUtils.distance(closest, sample)
@@ -66,9 +62,83 @@ def plan_to_goal(req):
             sample = ( (closest[0]+sample[0])/2, (closest[1]+sample[1])/2 )
             dist = userUtils.distance(closest, sample)
         return sample
+    
+    def checkOrientations(startNode, goalLoc):
+        ## Do something about orientation having to be maintained similar to previous orientations...OR I think since
+        # poses are required, this will be done automatically
+        PI = 3.14159
+        orients = (0, PI/2, PI, -PI/2)
+        
+        startConfig = Pose2D()
+        startConfig.x = startNode.val[0]
+        startConfig.y = startNode.val[1]
+        startConfig.theta = startNode.theta
+        goalConfig = Pose2D()
+        goalConfig.x = goalLoc[0]
+        goalConfig.y = goalLoc[1]
+        
+        # allowedOrients = []
+        for th in orients:
+            goalConfig.theta = th
+            chkFlag = check_srv(startConfig, goalConfig)
+            if(chkFlag.valid):
+            #     rrt.insert( (goalConfig.x, goalConfig.y), th )
+                retTh = th
+            else:
+                retTh = None
+
+        return (chkFlag, retTh)
+    
+    def createRRTNode(value, theta=None):
+        node = userUtils.Node()
+        node.val = value
+        node.theta = theta
+        return node
+
+    def createMarkerPoint(node, ctr):
+        markerPt = Marker()
+        markerPt.header.stamp = rospy.Time.now()
+        markerPt.header.frame_id = "Maze" # frame wrt which this marker is defined        
+        markerPt.ns = "rrt_sample"
+        markerPt.id = ctr
+
+        markerPt.type = Marker.SPHERE # Or value 2
+        markerPt.action = Marker.ADD # Or value 0 Or .UPDATE
+
+        ps = Pose()
+        ps.position.x = node.val[0]
+        ps.position.y = node.val[1]
+        markerPt.pose = ps
+        markerPt.lifetime = rospy.Duration(0) 
+        
+        markerPt.color.r = 1.0
+        markerPt.color.a = 1.0
+
+        markerPt.scale.x = 0.02
+        markerPt.scale.y = 0.02
+        markerPt.scale.z = 0.02
+        
+        return markerPt
+
+    # To visualize the RRT
+    # Using latched publishers so that RRT data persists after final publish event
+    markerPub = rospy.Publisher('/rrt/samples', MarkerArray, queue_size=10, latch=True)
+    marks = MarkerArray()
+
+    numSamples = 10
+    distSearch = 0.1
+    distCorrection = 0.3 # Later for RRT*
+    bReachedGoal = False
+
+     # Initialize kdtree with root at start location 
+    rrt = userUtils.KDTree(value=(xStart, yStart), theta=tStart)
 
     ctr = 0
-    while(ctr <= numSamples or ~bReachedGoal):
+    mark = createMarkerPoint(rrt.root, ctr)
+    marks.markers.append(mark)
+    while(ctr <= numSamples or bReachedGoal):
+        ctr += 1
+        print("CTR::::::::::: ", ctr)
 
         # Sample a point
         sign = random.randint(0,1)
@@ -84,24 +154,32 @@ def plan_to_goal(req):
             sign = -1        
         y = sign * random.uniform(0,map_length/2)
         sample = (x, y)
+        sampleNode = createRRTNode(sample)
 
-        closest, distFlag = rrt.search(sample, distSearch)
-
-        print("@@@@@@@@@@@@@@@")
-        print(closest, sample)
+        closestNode, distFlag = rrt.search(sampleNode, distSearch)
+        print("=====")
+        print(closestNode.val, sampleNode.val)
 
         # If sample is not within distSearch away from closest point in rrt, 
         # Find a point along the line from closest point to sample point, which 
         # is at a given dist away from closest point
         if(~distFlag):
-            sample = findPointAlongLine(closest, sample, distSearch)
+            sample = findPointAlongLine(closestNode.val, sampleNode.val, distSearch)
+            sampleNode = createRRTNode(sample)
 
-        print("@@@@@@@@@@@@@@@")
-        print(closest, sample)
+        print("---")
+        print(closestNode.val, sampleNode.val)
 
-        break
+        ## Add a reachability check before inserting into rrt
+        ## Add orientation check
+        chkFlag, allowedTh = checkOrientations(closestNode, sampleNode.val)
+        if(chkFlag.valid):
+        # if(1):
+            sampleNode.theta = allowedTh
+            mark = createMarkerPoint(sampleNode, ctr)
+            marks.markers.append(mark)
 
-
+        markerPub.publish(marks)
 
     # Output: movement commands
     pose_check_start.x, pose_check_start.y, pose_check_start.theta= xStart, yStart, tStart
