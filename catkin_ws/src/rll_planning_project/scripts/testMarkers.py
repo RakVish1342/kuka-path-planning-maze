@@ -12,6 +12,7 @@ import math
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
 from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Point
 import random
 import numpy as np
 import tf
@@ -106,6 +107,40 @@ class Visualize:
         
         print("done arrow")
 
+
+    def sendArrow2(self):
+        markerPt = Marker()
+        markerPt.header.stamp = rospy.Time.now()
+        markerPt.header.frame_id = "map"
+        markerPt.ns = "rrt_sample"
+        markerPt.id = 99 # frame wrt which this marker is defined
+
+        markerPt.type = Marker.ARROW #Marker.SPHERE # Or value 2
+        markerPt.action = Marker.ADD # Or value 0 Or .UPDATE
+
+        src = Point()
+        src.x = 0
+        src.y = 0
+        markerPt.points.append(src)
+        dst = Point()
+        dst.x = 1
+        dst.y = 1
+        markerPt.points.append(dst)
+
+        markerPt.scale.x = 0.5
+        markerPt.scale.y = 1.0
+
+        markerPt.lifetime = rospy.Duration(0) 
+        
+        markerPt.color.r = 1.0
+        markerPt.color.g = 1.0
+        markerPt.color.a = 1.0    
+
+        self.markerPub.publish(markerPt)    
+
+        print("done arrow2")
+
+
     def sendArrowArray(self):
 
         for i in range(2):
@@ -175,6 +210,9 @@ if __name__ == '__main__':
     viz = Visualize()
     # viz.sendSpherical()
     # viz.sendArrow()
-    viz.sendArrowArray()
+    viz.sendArrow2()
+    # viz.sendArrowArray()
+
+    ## Check which exact topic markers are being published.
 
     rospy.spin()

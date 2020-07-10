@@ -5,6 +5,7 @@ import actionlib
 from rll_planning_project.srv import *
 from rll_planning_project.msg import *
 from geometry_msgs.msg import Pose2D
+from geometry_msgs.msg import Point
 from heapq import heappush, heappop # for priority queue
 import math
 
@@ -14,6 +15,7 @@ from geometry_msgs.msg import Pose
 import random
 import numpy as np
 import userUtils
+import tf
 
 
 def plan_to_goal(req):
@@ -114,10 +116,41 @@ def plan_to_goal(req):
         markerPt.color.r = 1.0
         markerPt.color.a = 1.0
 
-        markerPt.scale.x = 0.02
-        markerPt.scale.y = 0.02
-        markerPt.scale.z = 0.02
+        scale = 2
+        markerPt.scale.x = 0.01*scale
+        markerPt.scale.y = 0.01*scale
+        markerPt.scale.z = 0.01*scale
         
+        return markerPt
+
+    def createMarkerLine(nodeSrc, nodeDst, ctr):
+        markerPt = Marker()
+        markerPt.header.stamp = rospy.Time.now()
+        markerPt.header.frame_id = "Maze"
+        markerPt.ns = "rrt_sample_connectors"
+        markerPt.id = ctr # frame wrt which this marker is defined
+
+        markerPt.type = Marker.ARROW # Or value 0
+        markerPt.action = Marker.ADD # Or value 0 Or .UPDATE
+
+        src = Point()
+        src.x = nodeSrc.val[0]
+        src.y = nodeSrc.val[1]
+        markerPt.points.append(src)
+        dst = Point()
+        dst.x = nodeDst.val[0]
+        dst.y = nodeDst.val[1]
+        markerPt.points.append(dst)
+
+        markerPt.scale.x = 0.01
+        markerPt.scale.y = 0.02
+
+        markerPt.lifetime = rospy.Duration(0) 
+        
+        markerPt.color.r = 1.0
+        markerPt.color.g = 1.0
+        markerPt.color.a = 1.0
+
         return markerPt
 
     # To visualize the RRT
@@ -125,7 +158,7 @@ def plan_to_goal(req):
     markerPub = rospy.Publisher('/rrt/samples', MarkerArray, queue_size=10, latch=True)
     marks = MarkerArray()
 
-    numSamples = 10
+    numSamples = 3
     distSearch = 0.1
     distCorrection = 0.3 # Later for RRT*
     bReachedGoal = False
@@ -136,7 +169,7 @@ def plan_to_goal(req):
     ctr = 0
     mark = createMarkerPoint(rrt.root, ctr)
     marks.markers.append(mark)
-    while(ctr <= numSamples or bReachedGoal):
+    while(ctr < numSamples or bReachedGoal):
         ctr += 1
         print("CTR::::::::::: ", ctr)
 
@@ -173,11 +206,13 @@ def plan_to_goal(req):
         ## Add a reachability check before inserting into rrt
         ## Add orientation check
         chkFlag, allowedTh = checkOrientations(closestNode, sampleNode.val)
-        if(chkFlag.valid):
-        # if(1):
+        # if(chkFlag.valid):
+        if(1):
             sampleNode.theta = allowedTh
-            mark = createMarkerPoint(sampleNode, ctr)
-            marks.markers.append(mark)
+            markPt = createMarkerPoint(sampleNode, ctr)
+            markLine = createMarkerLine(closestNode, sampleNode, ctr)
+            marks.markers.append(markPt)
+            marks.markers.append(markLine)
 
         markerPub.publish(marks)
 
