@@ -1,17 +1,36 @@
 import pdb
-import userUtils
+from userUtils import Node
+from userUtils import KDTree
 
-kdtree = userUtils.KDTree(value=(1,1))
-kdtree.insert(value=(0,0))
-kdtree.insert(value=(2,2))
-kdtree.insert(value=(3,3))
-kdtree.insert(value=(4,4))
+kdtree = KDTree(value=(1,1))
 
-(pt, flag) = kdtree.search((2,2), 2)
+nd = Node(value=(0,0))
+kdtree.insert(nd)
+nd = Node(value=(2,2))
+kdtree.insert(nd)
+nd = Node(value=(3,3))
+kdtree.insert(nd)
+nd = Node(value=(4,4))
+kdtree.insert(nd)
+
+nd = Node(value=(2,2))
+(pt, flag) = kdtree.search(nd, 2)
 print(pt, " ", flag)
-(pt, flag) = kdtree.search((2.1,2.1), 2)
+
+nd = Node(value=(2.1,2.1))
+(pt, flag) = kdtree.search(nd, 2)
 print(pt, " ", flag)
-(pt, flag) = kdtree.search((3.1,3.1), 0.2)
+
+nd = Node(value=(3.1,3.1))
+(pt, flag) = kdtree.search(nd, 0.2)
+print(pt, " ", flag)
+
+nd = Node(value=(-13,-13))
+(pt, flag) = kdtree.search(nd, 999)
+print(pt, " ", flag)
+
+nd = Node(value=(-13,-13))
+(pt, flag) = kdtree.search(nd, 0.2)
 print(pt, " ", flag)
 
 # pdb.set_trace()
