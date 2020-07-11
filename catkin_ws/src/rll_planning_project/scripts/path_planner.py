@@ -41,6 +41,9 @@ def plan_to_goal(req):
     xStart, yStart, tStart = pose_start.x, pose_start.y, pose_start.theta
     xGoal, yGoal, tGoal = pose_goal.x, pose_goal.y, pose_goal.theta
 
+    # xStart = 0
+    # yStart = 0
+
     # printing input values
     rospy.loginfo("map dimensions: width=%1.2fm, length=%1.2fm", map_width, map_length)
     print("map dimensions: width=%1.2fm, length=%1.2fm", map_width, map_length)
@@ -79,15 +82,24 @@ def plan_to_goal(req):
         goalConfig.x = goalLoc[0]
         goalConfig.y = goalLoc[1]
         
-        # allowedOrients = []
+        allowedOrients = np.array([])
+        chkFlag = False
+        retTh = None
         for th in orients:
             goalConfig.theta = th
-            chkFlag = check_srv(startConfig, goalConfig)
-            if(chkFlag.valid):
-            #     rrt.insert( (goalConfig.x, goalConfig.y), th )
-                retTh = th
+            tmpFlag = check_srv(startConfig, goalConfig)
+            if(tmpFlag.valid):
+                chkFlag = True
+                allowedOrients = np.append(allowedOrients, th)
+
+        if(chkFlag):
+            if(len(allowedOrients) == 1):
+                retTh = allowedOrients[0]
             else:
-                retTh = None
+                # Pick the theta that's the closest to existing configuration
+                diffTh = np.abs( startNode.theta - allowedOrients )
+                idx = np.argmin(diffTh)
+                retTh = allowedOrients[idx]
 
         return (chkFlag, retTh)
     
@@ -158,7 +170,7 @@ def plan_to_goal(req):
     markerPub = rospy.Publisher('/rrt/samples', MarkerArray, queue_size=10, latch=True)
     marks = MarkerArray()
 
-    numSamples = 40
+    numSamples = 500
     distSearch = 0.1
     distCorrection = 0.3 # Later for RRT*
     bReachedGoal = False
@@ -179,13 +191,13 @@ def plan_to_goal(req):
             sign = 1
         else:
             sign = -1
-        x = sign * random.uniform(0,map_width/2)
+        x = sign * random.uniform(0,map_width/2.0)
         sign = random.randint(0,1)
         if(sign):
             sign = 1
         else:
             sign = -1        
-        y = sign * random.uniform(0,map_length/2)
+        y = sign * random.uniform(0,map_length/2.0)
         sample = (x, y)
         sampleNode = createRRTNode(sample)
 
@@ -206,9 +218,11 @@ def plan_to_goal(req):
         ## Add a reachability check before inserting into rrt
         ## Add orientation check
         chkFlag, allowedTh = checkOrientations(closestNode, sampleNode.val)
-        if(chkFlag.valid):
+        print("CHKOUT::", chkFlag, allowedTh, sampleNode.val)
+        if(chkFlag):
         # if(1):
             sampleNode.theta = allowedTh
+            rrt.insert(sampleNode)
             markPt = createMarkerPoint(sampleNode, ctr)
             markLine = createMarkerLine(closestNode, sampleNode, ctr)
             marks.markers.append(markPt)
