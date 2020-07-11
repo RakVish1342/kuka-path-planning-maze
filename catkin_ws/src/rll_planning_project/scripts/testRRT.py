@@ -129,7 +129,7 @@ class RRTVisualize:
         map_width = 10
         map_length = 10
 
-        numSamples = 4
+        numSamples = 500
         distSearch = 1
         distCorrection = 0.3 # Later for RRT*
         bReachedGoal = False
@@ -146,21 +146,21 @@ class RRTVisualize:
             ctr += 1
             print("===:"+str(ctr))
 
-            # # Sample a point
-            # sign = random.randint(0,1)
-            # if(sign):
-            #     sign = 1
-            # else:
-            #     sign = -1
-            # x = sign * random.uniform(0,map_width/2)
-            # sign = random.randint(0,1)
-            # if(sign):
-            #     sign = 1
-            # else:
-            #     sign = -1        
-            # y = sign * random.uniform(0,map_length/2)
-            # sample = (x, y)
-            sample = samples[ctr-1]
+            # Sample a point
+            sign = random.randint(0,1)
+            if(sign):
+                sign = 1
+            else:
+                sign = -1
+            x = sign * random.uniform(0,map_width/2)
+            sign = random.randint(0,1)
+            if(sign):
+                sign = 1
+            else:
+                sign = -1        
+            y = sign * random.uniform(0,map_length/2)
+            sample = (x, y)
+            # sample = samples[ctr-1]
             sampleNode = self.createRRTNode(sample)
 
             closestNode, distFlag = rrt.search(sampleNode, distSearch)
@@ -171,7 +171,7 @@ class RRTVisualize:
             # Find a point along the line from closest point to sample point, which 
             # is at a given dist away from closest point
             if(~distFlag):
-                # sample = self.findPointAlongLine(closestNode.val, sampleNode.val, distSearch)
+                sample = self.findPointAlongLine(closestNode.val, sampleNode.val, distSearch)
                 sampleNode = self.createRRTNode(sample)
 
             print("---")
@@ -194,6 +194,12 @@ class RRTVisualize:
         
         markerPub.publish(marks)
 
+    def infi(self):
+        rate = rospy.Rate(0.1) # 10hz
+        while(1):
+            print("sleeping...")
+            rate.sleep()
+
 
 if __name__=="__main__":
 
@@ -210,3 +216,5 @@ if __name__=="__main__":
     rrtViz = RRTVisualize()
 
     rrtViz.execute()
+
+    rrtViz.infi()
