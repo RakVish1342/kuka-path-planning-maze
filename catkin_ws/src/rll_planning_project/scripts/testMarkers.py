@@ -19,6 +19,7 @@ import tf
 import userUtils
 
 class Visualize:
+    
     def __init__(self):
         self.markerPub = rospy.Publisher('/rrt/sample', Marker, queue_size=10, latch=True)
         self.markerArrayPub = rospy.Publisher('/rrt/samplesArray', MarkerArray, queue_size=10, latch=True)
@@ -205,7 +206,7 @@ if __name__ == '__main__':
     # os.system(cmd)
     
     
-    rospy.init_node('visualize')
+    rospy.init_node('marker_visualize')
 
     viz = Visualize()
     # viz.sendSpherical()

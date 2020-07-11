@@ -158,7 +158,7 @@ def plan_to_goal(req):
     markerPub = rospy.Publisher('/rrt/samples', MarkerArray, queue_size=10, latch=True)
     marks = MarkerArray()
 
-    numSamples = 3
+    numSamples = 40
     distSearch = 0.1
     distCorrection = 0.3 # Later for RRT*
     bReachedGoal = False
@@ -206,8 +206,8 @@ def plan_to_goal(req):
         ## Add a reachability check before inserting into rrt
         ## Add orientation check
         chkFlag, allowedTh = checkOrientations(closestNode, sampleNode.val)
-        # if(chkFlag.valid):
-        if(1):
+        if(chkFlag.valid):
+        # if(1):
             sampleNode.theta = allowedTh
             markPt = createMarkerPoint(sampleNode, ctr)
             markLine = createMarkerLine(closestNode, sampleNode, ctr)
