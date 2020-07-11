@@ -195,8 +195,8 @@ class RRTVisualize:
         markerPub.publish(marks)
 
     def infi(self):
-        rate = rospy.Rate(0.1) # 10hz
-        while(1):
+        rate = rospy.Rate(0.03) # 10hz
+        while(not rospy.is_shutdown()):
             print("sleeping...")
             rate.sleep()
 
