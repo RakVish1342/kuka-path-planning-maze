@@ -1,0 +1,5 @@
+Need to run this everytime the system is rebooted:
+" rosdep install --from-paths src --ignore-src -r -y "
+" rosdep install --from-paths src --ignore-src -r -y "
+
+Only after that source and run the project.
