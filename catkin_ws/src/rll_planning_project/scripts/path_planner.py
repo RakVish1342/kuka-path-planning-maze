@@ -41,9 +41,6 @@ def plan_to_goal(req):
     xStart, yStart, tStart = pose_start.x, pose_start.y, pose_start.theta
     xGoal, yGoal, tGoal = pose_goal.x, pose_goal.y, pose_goal.theta
 
-    # xStart = 0
-    # yStart = 0
-
     # printing input values
     rospy.loginfo("map dimensions: width=%1.2fm, length=%1.2fm", map_width, map_length)
     print("map dimensions: width=%1.2fm, length=%1.2fm", map_width, map_length)
@@ -60,6 +57,71 @@ def plan_to_goal(req):
     Uses midPoint formula to find a new sample point along sample and closest that is 
     within the given threshold.
     '''
+    def getSample(xDom, yDom, xMax, yMax):
+
+        if(xDom > xMax):
+            xDom = xMax
+        if(yDom > yMax):
+            yDom = yMax
+
+        sign = random.randint(0,1)
+        if(sign):
+            sign = 1
+        else:
+            sign = -1
+        x = sign * random.uniform(0,xDom)
+        sign = random.randint(0,1)
+        if(sign):
+            sign = 1
+        else:
+            sign = -1        
+        y = sign * random.uniform(0,yDom)
+        return (x, y)
+
+    '''
+    Circular Domain Increments
+    Concentrically increase domain, while sampling only in the added increment. 
+    If too many failed points are generated (ie. too many points are generated outside the domain)
+    then stop expanding the domain and sample from the entire domain rather than just the increment portion
+    '''
+    def pointFromPeri(radiusInner, radiusOuter, center, limits, maxTriesLimit, maxTriesFlag):
+
+        triesCtr = 0
+        validPt = False
+        # maxTriesFlag = False # Don't reset this flag. Once domain limit is reached, just use full domain
+        while(not validPt):
+
+            rad = random.uniform(radiusInner, radiusOuter)
+            # print("rad: ", rad)
+            peri = 2*math.pi*rad
+            # print("peri: ", peri)
+            prm = random.uniform(0, peri)
+            # print("prm: ", prm)
+
+            # Circle defined as per anti-clockwise angle from the x axis
+            angle = 2*math.pi* (prm/peri)
+            x = rad*math.cos(angle)
+            y = rad*math.sin(angle)
+
+            # print("limits: ", limits)
+            if(x>=limits[0] and x<=limits[1] and y>=limits[2] and y<=limits[3]):
+                validPt = True
+            else:
+                triesCtr += 1
+                # print("Invalid Pt: ", (x,y))
+
+            if(triesCtr > maxTriesLimit):
+                maxTriesFlag = True
+                break
+        
+        pt = (x,y)
+        # print("pt: ", pt)
+        x = x + center[0]
+        y = y + center[1]
+        pt = (x,y)
+        # print("pt: ", pt)
+        return pt, maxTriesFlag
+
     def findPointAlongLine(closest, sample, distThresh):
         dist = userUtils.distance(closest, sample)
         while(dist > distThresh):
@@ -165,12 +227,29 @@ def plan_to_goal(req):
 
         return markerPt
 
+
+    # Incremental Domain Expansion
+
+    center = (xStart, yStart)
+    limits = (-map_width/2.0, +map_width/2.0, -map_length/2.0, +map_length/2.0) # xmin, xmax, ymin, ymax
+    radiusOuter = 0
+    radiusInner = radiusOuter
+    radiusInc = 0.3
+    perimeterInner = 0
+    perimeterOuter = 0
+    # Flag to check if domain should stop expanding due to constant out of bounds error.
+    # ie. Domain is pretty much the size of global domain
+    maxTriesFlag = False
+    maxTriesLimit = 200
+    totSamples = 1000
+    radiusIncBatch = 2000
+    ctr = 0
+
     # To visualize the RRT
     # Using latched publishers so that RRT data persists after final publish event
     markerPub = rospy.Publisher('/rrt/samples', MarkerArray, queue_size=10, latch=True)
     marks = MarkerArray()
 
-    numSamples = 500
     distSearch = 0.1
     distCorrection = 0.3 # Later for RRT*
     bReachedGoal = False
@@ -181,29 +260,25 @@ def plan_to_goal(req):
     ctr = 0
     mark = createMarkerPoint(rrt.root, ctr)
     marks.markers.append(mark)
-    while(ctr < numSamples or bReachedGoal):
-        ctr += 1
-        print("CTR::::::::::: ", ctr)
+    while(ctr < totSamples or (not bReachedGoal) ):
+        print("===:"+str(ctr))
 
         # Sample a point
-        sign = random.randint(0,1)
-        if(sign):
-            sign = 1
-        else:
-            sign = -1
-        x = sign * random.uniform(0,map_width/2.0)
-        sign = random.randint(0,1)
-        if(sign):
-            sign = 1
-        else:
-            sign = -1        
-        y = sign * random.uniform(0,map_length/2.0)
-        sample = (x, y)
+        if( (not maxTriesFlag) and ctr % radiusIncBatch == 0):
+            print(">>> Domain Expanded")
+            radiusInner = radiusOuter
+            radiusOuter += radiusInc
+        ctr += 1
+
+        # sample = getSample(xDomain, yDomain, xDomMax, yDomMax)
+        sample, maxTriesFlag = pointFromPeri(radiusInner, radiusOuter, center, limits, maxTriesLimit, maxTriesFlag)
         sampleNode = createRRTNode(sample)
 
+        if (maxTriesFlag): # Failed to generate points. Reached limit. Start generating points over full domain now
+            print(">>> Reached the domain limit. Using entire domain now.")
+            radiusInner = 0
+
         closestNode, distFlag = rrt.search(sampleNode, distSearch)
-        print("=====")
-        print(closestNode.val, sampleNode.val)
 
         # If sample is not within distSearch away from closest point in rrt, 
         # Find a point along the line from closest point to sample point, which 
@@ -212,13 +287,10 @@ def plan_to_goal(req):
             sample = findPointAlongLine(closestNode.val, sampleNode.val, distSearch)
             sampleNode = createRRTNode(sample)
 
-        print("---")
-        print(closestNode.val, sampleNode.val)
-
         ## Add a reachability check before inserting into rrt
         ## Add orientation check
         chkFlag, allowedTh = checkOrientations(closestNode, sampleNode.val)
-        print("CHKOUT::", chkFlag, allowedTh, sampleNode.val)
+        # print("CHKOUT::", chkFlag, allowedTh, sampleNode.val)
         if(chkFlag):
         # if(1):
             sampleNode.theta = allowedTh
@@ -227,8 +299,11 @@ def plan_to_goal(req):
             markLine = createMarkerLine(closestNode, sampleNode, ctr)
             marks.markers.append(markPt)
             marks.markers.append(markLine)
+        else:
+            print(">>> Unable to use point. CHKFLG False: ", sample)
 
         markerPub.publish(marks)
+    #markerPub.publish(marks)
 
     # Output: movement commands
     pose_check_start.x, pose_check_start.y, pose_check_start.theta= xStart, yStart, tStart
@@ -241,6 +316,9 @@ def plan_to_goal(req):
         resp = move_srv(pose_move)
     else:
         rospy.loginfo("Invalid pose")
+
+    print("===")
+    print("RRT Done.")
         
     ####################
     # End of Algorithm #

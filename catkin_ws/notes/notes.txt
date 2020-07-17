@@ -3,3 +3,9 @@ Need to run this everytime the system is rebooted:
 " rosdep install --from-paths src --ignore-src -r -y "
 
 Only after that source and run the project.
+
+
+* Try inc of sample pts acc domain area currently available compared to prev domain area
+* See why tree does not expand backwards. Also why doesn't it expand into left forward tree? Something wrong with orientations that I am calculating? Output points slower and figure it out
+
+

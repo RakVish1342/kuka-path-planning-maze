@@ -80,8 +80,6 @@ class RRTVisualize:
         # print("pt: ", pt)
         return pt, maxTriesFlag
 
-
-
     def findPointAlongLine(self, closest, sample, distThresh):
         dist = userUtils.distance(closest, sample)
         while(dist > distThresh):
@@ -196,7 +194,7 @@ class RRTVisualize:
         # Circular incremental domain expansion variables
         radiusOuter = 0
         radiusInner = radiusOuter
-        radiusInc = 3
+        radiusInc = 15
         perimeterInner = 0
         perimeterOuter = 0
         # Flag to check if domain should stop expanding due to constant out of bounds error.
@@ -216,7 +214,6 @@ class RRTVisualize:
         rrt = userUtils.KDTree(value=(xStart, yStart), theta=tStart)
         mark = self.createMarkerPoint(rrt.root, ctr)
         marks.markers.append(mark)
-
 
         while(ctr < totSamples):
             # ctr += 1
