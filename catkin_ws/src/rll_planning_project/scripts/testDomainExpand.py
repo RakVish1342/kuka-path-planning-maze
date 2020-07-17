@@ -36,13 +36,18 @@ def pointFromPeri(radiusInner, radisuOuter, center, limits, maxTriesLimit, maxTr
         if(triesCtr > maxTriesLimit):
             maxTriesFlag = True
             break
+    
+    pt = (x,y)
+    # print("pt: ", pt)
     x = x + center[0]
     y = y + center[1]
-    return (x,y), maxTriesFlag
+    pt = (x,y)
+    # print("pt: ", pt)
+    return pt, maxTriesFlag
 
 
-xStart = 0
-yStart = 0
+xStart = 500
+yStart = 500
 center = (xStart, yStart)
 map_width = 20 # 0.1
 map_height = 20 # 0.1
@@ -71,7 +76,7 @@ while(ctr < totSamples):
     pt, maxTriesFlag = pointFromPeri(radiusInner, radiusOuter, center, limits, maxTriesLimit, maxTriesFlag)
 
     if(not maxTriesFlag): # Valid point
-        print("pt: ", pt)
+        print("POINT: ", pt)
     else: # Failed to generate points. Reached limit. Start generating points over full domain now
         print(">>> Reached the domain limit. Using entire domain now.")
         radiusInner = 0
