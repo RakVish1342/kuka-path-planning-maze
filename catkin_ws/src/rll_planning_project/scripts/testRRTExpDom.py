@@ -36,6 +36,52 @@ class RRTVisualize:
         y = sign * random.uniform(0,yMax)
         return (x, y)
 
+    '''
+    Circular Domain Increments
+    Concentrically increase domain, while sampling only in the added increment. 
+    If too many failed points are generated (ie. too many points are generated outside the domain)
+    then stop expanding the domain and sample from the entire domain rather than just the increment portion
+    '''
+    def pointFromPeri(self, radiusInner, radiusOuter, center, limits, maxTriesLimit, maxTriesFlag):
+
+        triesCtr = 0
+        validPt = False
+        # maxTriesFlag = False # Don't reset this flag. Once domain limit is reached, just use full domain
+        while(not validPt):
+
+            rad = random.uniform(radiusInner, radiusOuter)
+            print("rad: ", rad)
+            peri = 2*math.pi*rad
+            # print("peri: ", peri)
+            prm = random.uniform(0, peri)
+            # print("prm: ", prm)
+
+            # Circle defined as per anti-clockwise angle from the x axis
+            angle = 2*math.pi* (prm/peri)
+            x = rad*math.cos(angle)
+            y = rad*math.sin(angle)
+
+            # print("limits: ", limits)
+            if(x>=limits[0] and x<=limits[1] and y>=limits[2] and y<=limits[3]):
+                validPt = True
+            else:
+                triesCtr += 1
+                print("Invalid Pt: ", (x,y))
+
+            if(triesCtr > maxTriesLimit):
+                maxTriesFlag = True
+                break
+        
+        pt = (x,y)
+        # print("pt: ", pt)
+        x = x + center[0]
+        y = y + center[1]
+        pt = (x,y)
+        # print("pt: ", pt)
+        return pt, maxTriesFlag
+
+
+
     def findPointAlongLine(self, closest, sample, distThresh):
         dist = userUtils.distance(closest, sample)
         while(dist > distThresh):
@@ -139,31 +185,59 @@ class RRTVisualize:
         markerPub = rospy.Publisher('/rrt/samplesTest', MarkerArray, queue_size=10, latch=True)
         marks = MarkerArray()
 
-        xStart = 1
-        yStart = 1
+        xStart = 0
+        yStart = 0
         tStart = 0
-        map_width = 20
-        map_length = 20
+        center = (xStart, yStart)
+        map_width = 20 # 0.1
+        map_height = 20 # 0.1
+        limits = (-map_width/2.0, +map_width/2.0, -map_height/2.0, +map_height/2.0) # xmin, xmax, ymin, ymax
 
-        numSamples = 500
+        # Circular incremental domain expansion variables
+        radiusOuter = 0
+        radiusInner = radiusOuter
+        radiusInc = 3
+        perimeterInner = 0
+        perimeterOuter = 0
+        # Flag to check if domain should stop expanding due to constant out of bounds error.
+        # ie. Domain is pretty much the size of global domain
+        maxTriesFlag = False
+        maxTriesLimit = 200
+        totSamples = 500
+        radiusIncBatch = 200
+        ctr = 0
+
+        # RRT variables
         distSearch = 1
         distCorrection = 0.3 # Later for RRT*
         bReachedGoal = False
 
         # Initialize kdtree with root at start location 
         rrt = userUtils.KDTree(value=(xStart, yStart), theta=tStart)
-
-        samples = [(0,0),(2,2),(3,3),(4,4)]
-
-        ctr = 0
         mark = self.createMarkerPoint(rrt.root, ctr)
         marks.markers.append(mark)
-        while(ctr < numSamples or bReachedGoal):
-            ctr += 1
+
+
+        while(ctr < totSamples):
+            # ctr += 1
             print("===:"+str(ctr))
 
             # Sample a point
-            sample = self.getSample(map_width/2, map_length/2)
+            if( (not maxTriesFlag) and ctr % radiusIncBatch == 0):
+                print("=====")
+                radiusInner = radiusOuter
+                radiusOuter += radiusInc
+
+            sample, maxTriesFlag = self.pointFromPeri(radiusInner, radiusOuter, center, limits, maxTriesLimit, maxTriesFlag)
+
+            if(not maxTriesFlag): # Valid point
+                print("POINT: ", sample)
+            else: # Failed to generate points. Reached limit. Start generating points over full domain now
+                print(">>> Reached the domain limit. Using entire domain now.")
+                radiusInner = 0
+
+            ctr += 1
+
             # sample = samples[ctr-1]
             sampleNode = self.createRRTNode(sample)
 

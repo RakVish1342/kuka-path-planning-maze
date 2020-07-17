@@ -7,7 +7,7 @@ Concentrically increase domain, while sampling only in the added increment.
 If too many failed points are generated (ie. too many points are generated outside the domain)
 then stop expanding the domain and sample from the entire domain rather than just the increment portion
 '''
-def pointFromPeri(radiusInner, radisuOuter, center, limits, maxTriesLimit, maxTriesFlag):
+def pointFromPeri(radiusInner, radiusOuter, center, limits, maxTriesLimit, maxTriesFlag):
 
     triesCtr = 0
     validPt = False
