@@ -30,7 +30,7 @@ class KDTree:
     '''
     def insert(self, nodeIns):
         # pdb.set_trace()
-        print("Inserting a node: ", nodeIns.val, ", ", nodeIns.theta)
+        # print("Inserting a node: ", nodeIns.val, ", ", nodeIns.theta)
         node = self.root
         depth = 0
 

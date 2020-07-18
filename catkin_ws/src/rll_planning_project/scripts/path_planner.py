@@ -93,7 +93,7 @@ def plan_to_goal(req):
         while(not validPt):
 
             rad = random.uniform(radiusInner, radiusOuter)
-            print("rad: ", str(rad) + ", " + str(radiusInner) + ", " + str(radiusOuter))
+            # print("rad: ", str(rad) + ", " + str(radiusInner) + ", " + str(radiusOuter))
             peri = 2*math.pi*rad
             # print("peri: ", peri)
             prm = random.uniform(0, peri)
@@ -174,7 +174,7 @@ def plan_to_goal(req):
         node.theta = theta
         return node
 
-    def createMarkerPoint(node, ctr, color=(1.0, 0, 0), opaque=1.0, ns="rrt_sample_points", scale=0.02):
+    def createMarkerPoint(node, ctr, color=(1.0, 0, 0), opaque=1.0, ns="rrt_sample_points", scale=0.02, lifetime=0):
         markerPt = Marker()
         markerPt.header.stamp = rospy.Time.now()
         markerPt.header.frame_id = "Maze" # frame wrt which this marker is defined        
@@ -188,7 +188,7 @@ def plan_to_goal(req):
         ps.position.x = node.val[0]
         ps.position.y = node.val[1]
         markerPt.pose = ps
-        markerPt.lifetime = rospy.Duration(0) 
+        markerPt.lifetime = rospy.Duration(lifetime) 
         
         markerPt.color.r = color[0]
         markerPt.color.g = color[1]
@@ -245,7 +245,7 @@ def plan_to_goal(req):
     # ie. Domain is pretty much the size of global domain
     maxTriesFlag = False
     maxTriesLimit = 200
-    totSamples = 2000
+    totSamples = 5000
     radiusIncBatch = 100
 
     # To visualize the RRT
@@ -266,13 +266,16 @@ def plan_to_goal(req):
     mark = createMarkerPoint(rrt.root, ctr, color=(0, 1.0, 0))
     marks.markers.append(mark)
     while(ctr < totSamples or (not bReachedGoal) ):
-        print("===:"+str(ctr))
+        # print("===:"+str(ctr))
 
         # Sample a point
         if( (not maxTriesFlag) and ctr % radiusIncBatch == 0):
-            print(">>> Domain Expanded")
+            # print(">>> Domain Expanded")
+            print("===:"+str(ctr))            
             radiusInner = radiusOuter
             radiusOuter += radiusInc
+            radiusIncBatch = radiusIncBatch + ( radiusIncBatch + int(0.05*radiusIncBatch) )
+            
         ctr += 1
 
         # Visualize search domain
@@ -288,7 +291,7 @@ def plan_to_goal(req):
         sampleNode = createRRTNode(sample)
 
         if (maxTriesFlag): # Failed to generate points. Reached limit. Start generating points over full domain now
-            print(">>> Reached the domain limit. Using entire domain now.")
+            # print(">>> Reached the domain limit. Using entire domain now.")
             radiusInner = 0
 
         closestNode, distFlag = rrt.search(sampleNode, distSearch)
@@ -313,12 +316,12 @@ def plan_to_goal(req):
             marks.markers.append(markPt)
             marks.markers.append(markLine)
         else:
-            print(">>> Unable to use point. CHKFLG False: ", str(sample) + ", ", str(sampleNode.theta))
-            markPt = createMarkerPoint(sampleNode, failCtr, color=(0, 0, 1.0), ns="rrt_CHK_fail_sample")
-            marks.markers.append(markPt)
+            # print(">>> Unable to use point. CHKFLG False: ", str(sample) + ", ", str(sampleNode.theta))
+            # markPt = createMarkerPoint(sampleNode, failCtr, color=(0, 0, 1.0), ns="rrt_CHK_fail_sample", lifetime=10)
+            # marks.markers.append(markPt)
             failCtr += 1
 
-        time.sleep(0.05)
+        # time.sleep(0.05)
         markerPub.publish(marks)
     #markerPub.publish(marks)
 
