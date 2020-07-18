@@ -50,7 +50,7 @@ class RRTVisualize:
         while(not validPt):
 
             rad = random.uniform(radiusInner, radiusOuter)
-            print("rad: ", rad)
+            print("rad: ", str(rad) + ", " + str(radiusInner) + ", " + str(radiusOuter))
             peri = 2*math.pi*rad
             # print("peri: ", peri)
             prm = random.uniform(0, peri)
@@ -120,11 +120,11 @@ class RRTVisualize:
         node.theta = theta
         return node
 
-    def createMarkerPoint(self, node, ctr):
+    def createMarkerPoint(self, node, ctr, color=(1.0, 0.0, 0.0), opaque=1.0, ns="rrt_sample", scale=0.2):
         markerPt = Marker()
         markerPt.header.stamp = rospy.Time.now()
         markerPt.header.frame_id = "map" # frame wrt which this marker is defined        
-        markerPt.ns = "rrt_sample"
+        markerPt.ns = ns
         markerPt.id = ctr
 
         markerPt.type = Marker.SPHERE # Or value 2
@@ -136,13 +136,14 @@ class RRTVisualize:
         markerPt.pose = ps
         markerPt.lifetime = rospy.Duration(0) 
         
-        markerPt.color.r = 1.0
-        markerPt.color.a = 1.0
+        markerPt.color.r = color[0]
+        markerPt.color.g = color[1]
+        markerPt.color.b = color[2]
+        markerPt.color.a = opaque
 
-        scale = 2
-        markerPt.scale.x = 0.1*scale
-        markerPt.scale.y = 0.1*scale
-        markerPt.scale.z = 0.1*scale
+        markerPt.scale.x = scale
+        markerPt.scale.y = scale
+        markerPt.scale.z = scale
         
         return markerPt
 
@@ -194,15 +195,15 @@ class RRTVisualize:
         # Circular incremental domain expansion variables
         radiusOuter = 0
         radiusInner = radiusOuter
-        radiusInc = 15
+        radiusInc = 0.5
         perimeterInner = 0
         perimeterOuter = 0
         # Flag to check if domain should stop expanding due to constant out of bounds error.
         # ie. Domain is pretty much the size of global domain
         maxTriesFlag = False
         maxTriesLimit = 200
-        totSamples = 500
-        radiusIncBatch = 200
+        totSamples = 1000
+        radiusIncBatch = 3
         ctr = 0
 
         # RRT variables
@@ -220,10 +221,19 @@ class RRTVisualize:
             print("===:"+str(ctr))
 
             # Sample a point
-            if( (not maxTriesFlag) and ctr % radiusIncBatch == 0):
+            if( (not maxTriesFlag) and (ctr % radiusIncBatch == 0) ):
                 print("=====")
                 radiusInner = radiusOuter
                 radiusOuter += radiusInc
+                radiusIncBatch = radiusIncBatch + ( radiusIncBatch + int(0.1*radiusIncBatch) )
+
+            print("RADIUSSSSSSSSSSSSSSS " + str(radiusIncBatch) + ", " + str(ctr % radiusIncBatch == 0) + str(maxTriesFlag) + str((not maxTriesFlag) and (ctr % radiusIncBatch == 0)))
+
+            startNode = self.createRRTNode( (xStart, yStart) )
+            markerPt = self.createMarkerPoint(startNode, 999999, color=(1.0, 1.0, 1.0), opaque=0.2, ns="rrt_search_domain", scale=2*radiusOuter)
+            marks.markers.append(markerPt)
+            markerPt = self.createMarkerPoint(startNode, 999998, color=(1.0, 1.0, 1.0), opaque=0.4, ns="rrt_search_domain", scale=2*radiusInner)
+            marks.markers.append(markerPt)
 
             sample, maxTriesFlag = self.pointFromPeri(radiusInner, radiusOuter, center, limits, maxTriesLimit, maxTriesFlag)
 
@@ -265,7 +275,7 @@ class RRTVisualize:
                 marks.markers.append(markPt)
                 marks.markers.append(markLine)
             
-            time.sleep(0.05)
+            time.sleep(0.5)
             markerPub.publish(marks)
         # markerPub.publish(marks)
 
