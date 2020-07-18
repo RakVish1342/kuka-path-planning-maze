@@ -16,6 +16,7 @@ import random
 import numpy as np
 import userUtils
 import tf
+import time
 
 
 def plan_to_goal(req):
@@ -92,7 +93,7 @@ def plan_to_goal(req):
         while(not validPt):
 
             rad = random.uniform(radiusInner, radiusOuter)
-            # print("rad: ", rad)
+            print("rad: ", str(rad) + ", " + str(radiusInner) + ", " + str(radiusOuter))
             peri = 2*math.pi*rad
             # print("peri: ", peri)
             prm = random.uniform(0, peri)
@@ -110,6 +111,7 @@ def plan_to_goal(req):
                 triesCtr += 1
                 # print("Invalid Pt: ", (x,y))
 
+            # continuously sampling outside the allowed sampling area means stop increasing sample domain
             if(triesCtr > maxTriesLimit):
                 maxTriesFlag = True
                 break
@@ -120,7 +122,7 @@ def plan_to_goal(req):
         y = y + center[1]
         pt = (x,y)
         # print("pt: ", pt)
-        return pt, maxTriesFlag
+        return pt, maxTriesFlag, rad
 
     def findPointAlongLine(closest, sample, distThresh):
         dist = userUtils.distance(closest, sample)
@@ -135,6 +137,7 @@ def plan_to_goal(req):
         # poses are required, this will be done automatically
         PI = 3.14159
         orients = (0, PI/2, PI, -PI/2)
+        # orients = (PI/2, PI, -PI/2)
         
         startConfig = Pose2D()
         startConfig.x = startNode.val[0]
@@ -171,11 +174,11 @@ def plan_to_goal(req):
         node.theta = theta
         return node
 
-    def createMarkerPoint(node, ctr):
+    def createMarkerPoint(node, ctr, color=(1.0, 0, 0), opaque=1.0, ns="rrt_sample_points", scale=0.02):
         markerPt = Marker()
         markerPt.header.stamp = rospy.Time.now()
         markerPt.header.frame_id = "Maze" # frame wrt which this marker is defined        
-        markerPt.ns = "rrt_sample"
+        markerPt.ns = ns
         markerPt.id = ctr
 
         markerPt.type = Marker.SPHERE # Or value 2
@@ -187,13 +190,14 @@ def plan_to_goal(req):
         markerPt.pose = ps
         markerPt.lifetime = rospy.Duration(0) 
         
-        markerPt.color.r = 1.0
-        markerPt.color.a = 1.0
+        markerPt.color.r = color[0]
+        markerPt.color.g = color[1]
+        markerPt.color.b = color[2]
+        markerPt.color.a = opaque
 
-        scale = 2
-        markerPt.scale.x = 0.01*scale
-        markerPt.scale.y = 0.01*scale
-        markerPt.scale.z = 0.01*scale
+        markerPt.scale.x = scale
+        markerPt.scale.y = scale
+        markerPt.scale.z = scale
         
         return markerPt
 
@@ -234,16 +238,15 @@ def plan_to_goal(req):
     limits = (-map_width/2.0, +map_width/2.0, -map_length/2.0, +map_length/2.0) # xmin, xmax, ymin, ymax
     radiusOuter = 0
     radiusInner = radiusOuter
-    radiusInc = 0.3
+    radiusInc = 0.05
     perimeterInner = 0
     perimeterOuter = 0
     # Flag to check if domain should stop expanding due to constant out of bounds error.
     # ie. Domain is pretty much the size of global domain
     maxTriesFlag = False
     maxTriesLimit = 200
-    totSamples = 1000
-    radiusIncBatch = 2000
-    ctr = 0
+    totSamples = 2000
+    radiusIncBatch = 100
 
     # To visualize the RRT
     # Using latched publishers so that RRT data persists after final publish event
@@ -258,7 +261,9 @@ def plan_to_goal(req):
     rrt = userUtils.KDTree(value=(xStart, yStart), theta=tStart)
 
     ctr = 0
-    mark = createMarkerPoint(rrt.root, ctr)
+    failCtr = 0
+    failCtr = 0
+    mark = createMarkerPoint(rrt.root, ctr, color=(0, 1.0, 0))
     marks.markers.append(mark)
     while(ctr < totSamples or (not bReachedGoal) ):
         print("===:"+str(ctr))
@@ -270,8 +275,16 @@ def plan_to_goal(req):
             radiusOuter += radiusInc
         ctr += 1
 
+        # Visualize search domain
+        startNode = createRRTNode( (xStart, yStart) )
+        markerPt = createMarkerPoint(startNode, 999999, color=(1.0, 1.0, 1.0), opaque=0.2, ns="rrt_search_domain", scale=2*radiusOuter)
+        marks.markers.append(markerPt)
+        markerPt = createMarkerPoint(startNode, 999998, color=(1.0, 1.0, 1.0), opaque=0.4, ns="rrt_search_domain", scale=2*radiusInner)
+        marks.markers.append(markerPt)
+
         # sample = getSample(xDomain, yDomain, xDomMax, yDomMax)
-        sample, maxTriesFlag = pointFromPeri(radiusInner, radiusOuter, center, limits, maxTriesLimit, maxTriesFlag)
+        sample, maxTriesFlag, _ = pointFromPeri(radiusInner, radiusOuter, center, limits, maxTriesLimit, maxTriesFlag)
+        # sample = (xStart+0.2, yStart)
         sampleNode = createRRTNode(sample)
 
         if (maxTriesFlag): # Failed to generate points. Reached limit. Start generating points over full domain now
@@ -300,8 +313,12 @@ def plan_to_goal(req):
             marks.markers.append(markPt)
             marks.markers.append(markLine)
         else:
-            print(">>> Unable to use point. CHKFLG False: ", sample)
+            print(">>> Unable to use point. CHKFLG False: ", str(sample) + ", ", str(sampleNode.theta))
+            markPt = createMarkerPoint(sampleNode, failCtr, color=(0, 0, 1.0), ns="rrt_CHK_fail_sample")
+            marks.markers.append(markPt)
+            failCtr += 1
 
+        time.sleep(0.05)
         markerPub.publish(marks)
     #markerPub.publish(marks)
 

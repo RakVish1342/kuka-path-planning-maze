@@ -9,8 +9,10 @@
   <arg name="grasp_object_dim_z" default="0.04" />
   
   <!-- Start 2D pose  -->
-  <arg name="start_pos_x" default="0.38" />
-  <arg name="start_pos_y" default="-0.5" />
+  <!-- <arg name="start_pos_x" default="0.38" /> -->
+  <!-- <arg name="start_pos_y" default="-0.5" /> -->
+  <arg name="start_pos_x" default="0.24" />
+  <arg name="start_pos_y" default="-0.0" />
   <arg name="start_pos_theta" default="0.0" />
   <!-- Goal 2D pose  -->
   <arg name="goal_pos_x" default="0.38" />
