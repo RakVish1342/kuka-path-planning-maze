@@ -14,24 +14,35 @@ nd = Node(value=(4,4))
 kdtree.insert(nd)
 
 nd = Node(value=(2,2))
-(nd, flag) = kdtree.search(nd, 2)
+nd, flag, _ = kdtree.search(nd, 2)
 print(nd.val, " ", flag)
 
 nd = Node(value=(2.1,2.1))
-(nd, flag) = kdtree.search(nd, 2)
+nd, flag, _ = kdtree.search(nd, 2)
 print(nd.val, " ", flag)
 
 nd = Node(value=(3.1,3.1))
-(nd, flag) = kdtree.search(nd, 0.2)
+nd, flag, _ = kdtree.search(nd, 0.2)
 print(nd.val, " ", flag)
 
 nd = Node(value=(-13,-13))
-(nd, flag) = kdtree.search(nd, 999)
+nd, flag, _ = kdtree.search(nd, 999)
 print(nd.val, " ", flag)
 
 nd = Node(value=(-13,-13))
-(nd, flag) = kdtree.search(nd, 0.2)
+nd, flag, _ = kdtree.search(nd, 0.2)
 print(nd.val, " ", flag)
+
+nd = Node(value=(4,4))
+closestNode, distFlag, path = kdtree.search(nd, 0.001, getPath=True)
+if(distFlag):
+    print("Path Retrieved: ", path)
+else:
+    print("Path not found.")
+
+for p in path:
+    print(p.val)
+
 
 # pdb.set_trace()
 

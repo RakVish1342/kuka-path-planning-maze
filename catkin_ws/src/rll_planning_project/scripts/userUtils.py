@@ -79,7 +79,7 @@ class KDTree:
     Same implementation as insert, except that in the end the latest searched node is returned
     and a flag is sent back. (if the node returned is within the given threshold or is just the closest point)
     '''
-    def search(self, nodeSearch, distThresh):
+    def search(self, nodeSearch, distThresh, getPath=False):
 
         ## Will there be duplicate value entries?? But with different theta values??
         ## Change distance metric to account for this if so
@@ -88,13 +88,19 @@ class KDTree:
         nodes = []
         dists = []
         distFlag = False
+        if(getPath):
+            path = []
+        else:
+            path = None
 
         # pdb.set_trace()
 
         # Search till None node is reached. Once None is reached, return latest node value
         while(1):
-
             nodeSearch.depth = depth
+            
+            if(getPath):
+                path.append(node)
 
             dist = distance(node.val, nodeSearch.val)
             if(dist <= distThresh):
@@ -153,7 +159,7 @@ class KDTree:
             nodes = nodes[0:-1]
             node = findClosest(nodes, dists)
 
-        return (node, distFlag)
+        return (node, distFlag, path)
 
             
         
