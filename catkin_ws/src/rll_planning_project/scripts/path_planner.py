@@ -238,7 +238,7 @@ def plan_to_goal(req):
     limits = (-map_width/2.0, +map_width/2.0, -map_length/2.0, +map_length/2.0) # xmin, xmax, ymin, ymax
     radiusOuter = 0
     radiusInner = radiusOuter
-    radiusInc = 0.05
+    radiusInc = 0.025
     perimeterInner = 0
     perimeterOuter = 0
     # Flag to check if domain should stop expanding due to constant out of bounds error.
@@ -246,14 +246,14 @@ def plan_to_goal(req):
     maxTriesFlag = False
     maxTriesLimit = 200
     totSamples = 5000
-    radiusIncBatch = 100
+    radiusIncBatch = 10
 
     # To visualize the RRT
     # Using latched publishers so that RRT data persists after final publish event
     markerPub = rospy.Publisher('/rrt/samples', MarkerArray, queue_size=10, latch=True)
     marks = MarkerArray()
 
-    distSearch = 0.1
+    distSearch = 0.05
     distCorrection = 0.3 # Later for RRT*
     bReachedGoal = False
 
@@ -294,7 +294,7 @@ def plan_to_goal(req):
             # print(">>> Reached the domain limit. Using entire domain now.")
             radiusInner = 0
 
-        closestNode, distFlag = rrt.search(sampleNode, distSearch)
+        closestNode, distFlag, _ = rrt.search(sampleNode, distSearch)
 
         # If sample is not within distSearch away from closest point in rrt, 
         # Find a point along the line from closest point to sample point, which 
@@ -315,6 +315,17 @@ def plan_to_goal(req):
             markLine = createMarkerLine(closestNode, sampleNode, ctr)
             marks.markers.append(markPt)
             marks.markers.append(markLine)
+
+            # Check if this node can reach goal node
+            goal = (xGoal, yGoal)
+            chkFlag, allowedTh = checkOrientations(sampleNode, goal)
+            if(chkFlag):
+                goalNode = createRRTNode(goal)
+                goalNode.theta = allowedTh
+                rrt.insert(sampleNode)
+                goalFound = True
+                break
+
         else:
             # print(">>> Unable to use point. CHKFLG False: ", str(sample) + ", ", str(sampleNode.theta))
             # markPt = createMarkerPoint(sampleNode, failCtr, color=(0, 0, 1.0), ns="rrt_CHK_fail_sample", lifetime=10)
@@ -325,17 +336,36 @@ def plan_to_goal(req):
         markerPub.publish(marks)
     #markerPub.publish(marks)
 
-    # Output: movement commands
-    pose_check_start.x, pose_check_start.y, pose_check_start.theta= xStart, yStart, tStart
-    pose_check_goal.x, pose_check_goal.y, pose_check_goal.theta= xGoal, yGoal, tGoal
-    resp = check_srv(pose_check_start, pose_check_goal) # checking if the arm can move to the goal pose
-    if resp.valid:
-        rospy.loginfo("Valid pose")
-        pose_move.x, pose_move.y, pose_move.theta = xGoal, yGoal, tGoal 
-        # executing a move command towards the goal pose
-        resp = move_srv(pose_move)
-    else:
-        rospy.loginfo("Invalid pose")
+    # Send sequence of moves to goal
+    _, distFlag, path = rrt.search(sampleNode, 0.001, getPath=True)
+    ctr = 0
+    while( ctr<len(path) ):
+        p = path[ctr]
+        pose = Pose2D()
+        pose.x = p.val[0]
+        pose.y = p.val[1]
+        pose.theta = p.theta
+        resp = move_srv(pose)
+        if(not resp.valid):
+            print(">>> Error moving: ", p.val)
+        else:
+            ctr += 1
+               
+
+    # # Output: movement commands
+    # pose_check_start.x, pose_check_start.y, pose_check_start.theta= xStart, yStart, tStart
+    # pose_check_goal.x, pose_check_goal.y, pose_check_goal.theta= xGoal, yGoal, tGoal
+    # resp = check_srv(pose_check_start, pose_check_goal) # checking if the arm can move to the goal pose
+    # if resp.valid:
+    #     rospy.loginfo("Valid pose")
+    #     pose_move.x, pose_move.y, pose_move.theta = xGoal, yGoal, tGoal 
+    #     # executing a move command towards the goal pose
+    #     resp = move_srv(pose_move)
+    # else:
+    #     rospy.loginfo("Invalid pose")
+
+
+
 
     print("===")
     print("RRT Done.")
