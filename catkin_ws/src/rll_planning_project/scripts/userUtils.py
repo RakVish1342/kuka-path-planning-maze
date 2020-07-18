@@ -21,54 +21,70 @@ class KDTree:
     #set the default value to the args that it accepts
     # def __init__(self):
     #     self.tree = Node() # Create root node
-    def __init__(self, value=(None, None), theta=None):
+    def __init__(self, value=(None, None), theta=None, doubleTree=False):
+        self.doubleTree = doubleTree
         # Create root node
-        self.root = Node(value=value, theta=theta, depth=0)
+        if(not doubleTree):
+            self.root = Node(value=value, theta=theta, depth=0)
+        else:
+            self.xroot = Node(value=value, theta=theta, depth=0)
+            self.yroot = Node(value=value, theta=theta, depth=0)
+
 
     '''
-    Insert a node into the kdtree
+    Insert a node into xtree or ytree
     '''
-    def insert(self, nodeIns):
+    def insertHelper(self, nodeIns, doubleTree=False, rootAxis='x'):
         # pdb.set_trace()
         # print("Inserting a node: ", nodeIns.val, ", ", nodeIns.theta)
-        node = self.root
-        depth = 0
+        if(not doubleTree):
+            node = self.root
+            dim = 0
+        else:
+            if(rootAxis == 'x'):
+                node = self.xroot
+                dim = 0
+            elif(rootAxis == 'y'):
+                node = self.yroot
+                dim = 1
+            else:
+                print("Invalid dimension.")
 
+        # 'depth' is used to simply set the depth of the node (for distance calculation. 
+        # 'dim' is what is used to check the x or y axis
+        depth = 0
         while(1):
 
             nodeIns.depth = depth+1
+            dim = dim % 2
 
-            if(depth%2 == 0): # Compare x coordinates
-                if(nodeIns.val[0] <= node.val[0]):
-                    if(node.childLeft is None): # Create a new node here
-                        node.childLeft = nodeIns
-                        break # done inserting
-                    else: # continue on with the search of empty node
-                        node = node.childLeft
+            if(nodeIns.val[dim] <= node.val[dim]):
+                if(node.childLeft is None): # Create a new node here
+                    node.childLeft = nodeIns
+                    break # done inserting
+                else: # continue on with the search of empty node
+                    node = node.childLeft
 
+            else:
+                if(node.childRight is None):
+                    node.childRight = nodeIns
+                    break
                 else:
-                    if(node.childRight is None):
-                        node.childRight = nodeIns
-                        break
-                    else:
-                        node = node.childRight
+                    node = node.childRight
 
-            else: # Compare y coordinates
-                if(nodeIns.val[1] <= node.val[1]):
-                    if(node.childLeft is None):
-                        node.childLeft = nodeIns
-                        break
-                    else:
-                        node = node.childLeft
-
-                else:
-                    if(node.childRight is None):
-                        node.childRight = nodeIns
-                        break
-                    else:
-                        node = node.childRight
-            
             depth += 1
+            dim += 1
+
+    '''
+    Insert a node into kdtree
+    '''
+    def insert(self, nodeIns, doubleTree=False):
+        if(not doubleTree):
+            self.insertHelper(nodeIns, rootAxis='x')
+        else:
+            self.insertHelper(nodeIns, rootAxis='x')
+            self.insertHelper(nodeIns, rootAxis='y')
+
 
     '''
     Search for a point that is within distThresh. 
@@ -79,12 +95,22 @@ class KDTree:
     Same implementation as insert, except that in the end the latest searched node is returned
     and a flag is sent back. (if the node returned is within the given threshold or is just the closest point)
     '''
-    def search(self, nodeSearch, distThresh, getPath=False):
+    def searchHelper(self, nodeSearch, distThresh, getPath=False, doubleTree=False, rootAxis='x'):
 
         ## Will there be duplicate value entries?? But with different theta values??
         ## Change distance metric to account for this if so
-        node = self.root
-        depth = 0
+        if(not doubleTree):
+            node = self.root
+            dim = 0
+        else:
+            if(rootAxis == 'x'):
+                node = self.xroot
+                dim = 0
+            elif(rootAxis == 'y'):
+                node = self.yroot
+                dim = 1
+            else:
+                print("Invalid dimension.")
         nodes = []
         dists = []
         distFlag = False
@@ -93,11 +119,11 @@ class KDTree:
         else:
             path = None
 
-        # pdb.set_trace()
-
+        depth = 0
         # Search till None node is reached. Once None is reached, return latest node value
         while(1):
             nodeSearch.depth = depth
+            dim = dim % 2
             
             if(getPath):
                 path.append(node)
@@ -111,37 +137,21 @@ class KDTree:
                 dists.append(dist)
                 distFlag = True
 
-            if(depth%2 == 0): # Compare x coordinates
-                if(nodeSearch.val[0] <= node.val[0]):
-                    if(node.childLeft is None): # Just return the latest node
-                        nodes.append(node)
-                        break
-                    else: # continue on with the search of empty node
-                        node = node.childLeft
-
+            if(nodeSearch.val[dim] <= node.val[dim]):
+                if(node.childLeft is None): # Just return the latest node
+                    nodes.append(node)
+                    break
+                else: # continue on with the search of empty node
+                    node = node.childLeft
+            else:
+                if(node.childRight is None):
+                    nodes.append(node)
+                    break
                 else:
-                    if(node.childRight is None):
-                        nodes.append(node)
-                        break
-                    else:
-                        node = node.childRight
-
-            else: # Compare y coordinates
-                if(nodeSearch.val[1] <= node.val[1]):
-                    if(node.childLeft is None):
-                        nodes.append(node)
-                        break
-                    else:
-                        node = node.childLeft
-
-                else:
-                    if(node.childRight is None):
-                        nodes.append(node)
-                        break
-                    else:
-                        node = node.childRight
+                    node = node.childRight
 
             depth += 1
+            dim += 1
         
         ''' 
         Find closest node among shortlisted nodes
@@ -160,6 +170,26 @@ class KDTree:
             node = findClosest(nodes, dists)
 
         return (node, distFlag, path)
+
+    def search(self, nodeSearch, distThresh, getPath=False, doubleTree=False, rootAxis='x'):
+        if(not doubleTree):
+            node, distFlag, path = self.searchHelper(nodeSearch, distThresh, getPath, doubleTree=False, rootAxis='x')
+            treeType = 'x'
+        else:
+            nodeX, distFlagX, pathX = self.searchHelper(nodeSearch, distThresh, getPath, doubleTree=False, rootAxis='x')
+            nodeY, distFlagY, pathY = self.searchHelper(nodeSearch, distThresh, getPath, doubleTree=False, rootAxis='y')
+
+            # send out min of both of these trees
+            if(distance(nodeSearch.val, nodeX.val) >= distance(nodeSearch.val, nodeY.val)):
+                node = nodeX
+                distFlag = distFlagX
+                path = pathX
+            else:
+                node = nodeY
+                distFlag = distFlagY
+                path = pathY
+        
+        return node, distFlag, path
 
             
         

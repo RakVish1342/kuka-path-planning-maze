@@ -8,4 +8,8 @@ Only after that source and run the project.
 * Try inc of sample pts acc domain area currently available compared to prev domain area
 * See why tree does not expand backwards. Also why doesn't it expand into left forward tree? Something wrong with orientations that I am calculating? Output points slower and figure it out
 
-
+*Working fine, however nodes in parallel path are chosen rather than nodes in current path. Need to add a recursive search/check on nodes so that only local nodes are searched or k nearest nodes are selected and in those k neighbours preference is given to the node that is reacheable rather than plain closest.
+OR I think what's actually happening is the issue with the use of a KD tree. When looking for a point that's slightly off to the rhs, the points on the T junction tail don't get picked since only only points on RHS of central/start point are selected. All else are left out, acc the structure of the tree. 
+SO, to fix this, try to search through the tree once acc x and once acc y. Depending on which is better/closer, pick that if allowed by arm. This is also why I think points are generally sparse on the vertical lines/paths
+I THINK fixing it in either way would work. Implementation wise and quick testing wise and ease of debugging would be if x and y kd tree were maintained.
+DOING this does not mean we search through all the points, since many nodes are still excluded at each dimension. It might be equivalent to searching 2*log(n) rather than just log(n) of all the nodes approximately.

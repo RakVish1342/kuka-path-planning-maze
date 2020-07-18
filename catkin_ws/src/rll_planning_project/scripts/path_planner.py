@@ -238,7 +238,7 @@ def plan_to_goal(req):
     limits = (-map_width/2.0, +map_width/2.0, -map_length/2.0, +map_length/2.0) # xmin, xmax, ymin, ymax
     radiusOuter = 0
     radiusInner = radiusOuter
-    radiusInc = 0.025
+    radiusInc = 0.05
     perimeterInner = 0
     perimeterOuter = 0
     # Flag to check if domain should stop expanding due to constant out of bounds error.
@@ -246,14 +246,14 @@ def plan_to_goal(req):
     maxTriesFlag = False
     maxTriesLimit = 200
     totSamples = 5000
-    radiusIncBatch = 10
+    radiusIncBatch = 100
 
     # To visualize the RRT
     # Using latched publishers so that RRT data persists after final publish event
     markerPub = rospy.Publisher('/rrt/samples', MarkerArray, queue_size=10, latch=True)
     marks = MarkerArray()
 
-    distSearch = 0.05
+    distSearch = 0.1
     distCorrection = 0.3 # Later for RRT*
     bReachedGoal = False
 
@@ -328,11 +328,11 @@ def plan_to_goal(req):
 
         else:
             # print(">>> Unable to use point. CHKFLG False: ", str(sample) + ", ", str(sampleNode.theta))
-            # markPt = createMarkerPoint(sampleNode, failCtr, color=(0, 0, 1.0), ns="rrt_CHK_fail_sample", lifetime=10)
-            # marks.markers.append(markPt)
+            markPt = createMarkerPoint(sampleNode, failCtr, color=(0, 0, 1.0), ns="rrt_CHK_fail_sample", lifetime=10)
+            marks.markers.append(markPt)
             failCtr += 1
 
-        # time.sleep(0.05)
+        time.sleep(0.05)
         markerPub.publish(marks)
     #markerPub.publish(marks)
 
