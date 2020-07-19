@@ -36,7 +36,6 @@ class KDTree:
     Insert a node into xtree or ytree
     '''
     def insertHelper(self, nodeIns, rootAxis='x'):
-        # pdb.set_trace()
         # print("Inserting a node: ", nodeIns.val, ", ", nodeIns.theta)
         if(not self.doubleTree):
             node = self.root
@@ -179,8 +178,6 @@ class KDTree:
         else:
             nodeX, distFlagX, pathX = self.searchHelper(nodeSearch, distThresh, getPath, rootAxis='x')
             nodeY, distFlagY, pathY = self.searchHelper(nodeSearch, distThresh, getPath, rootAxis='y')
-
-            pdb.set_trace()
 
             # send out min of both of these trees
             if(distance(nodeSearch.val, nodeX.val) <= distance(nodeSearch.val, nodeY.val)):
