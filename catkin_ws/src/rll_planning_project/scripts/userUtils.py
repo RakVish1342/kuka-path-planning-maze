@@ -24,7 +24,7 @@ class KDTree:
     def __init__(self, value=(None, None), theta=None, doubleTree=False):
         self.doubleTree = doubleTree
         # Create root node
-        if(not doubleTree):
+        if(not self.doubleTree):
             self.root = Node(value=value, theta=theta, depth=0)
         else:
             self.xroot = Node(value=value, theta=theta, depth=0)
@@ -34,10 +34,10 @@ class KDTree:
     '''
     Insert a node into xtree or ytree
     '''
-    def insertHelper(self, nodeIns, doubleTree=False, rootAxis='x'):
+    def insertHelper(self, nodeIns, rootAxis='x'):
         # pdb.set_trace()
         # print("Inserting a node: ", nodeIns.val, ", ", nodeIns.theta)
-        if(not doubleTree):
+        if(not self.doubleTree):
             node = self.root
             dim = 0
         else:
@@ -78,8 +78,8 @@ class KDTree:
     '''
     Insert a node into kdtree
     '''
-    def insert(self, nodeIns, doubleTree=False):
-        if(not doubleTree):
+    def insert(self, nodeIns):
+        if(not self.doubleTree):
             self.insertHelper(nodeIns, rootAxis='x')
         else:
             self.insertHelper(nodeIns, rootAxis='x')
@@ -95,11 +95,11 @@ class KDTree:
     Same implementation as insert, except that in the end the latest searched node is returned
     and a flag is sent back. (if the node returned is within the given threshold or is just the closest point)
     '''
-    def searchHelper(self, nodeSearch, distThresh, getPath=False, doubleTree=False, rootAxis='x'):
+    def searchHelper(self, nodeSearch, distThresh, getPath=False, rootAxis='x'):
 
         ## Will there be duplicate value entries?? But with different theta values??
         ## Change distance metric to account for this if so
-        if(not doubleTree):
+        if(not self.doubleTree):
             node = self.root
             dim = 0
         else:
@@ -171,13 +171,13 @@ class KDTree:
 
         return (node, distFlag, path)
 
-    def search(self, nodeSearch, distThresh, getPath=False, doubleTree=False, rootAxis='x'):
-        if(not doubleTree):
-            node, distFlag, path = self.searchHelper(nodeSearch, distThresh, getPath, doubleTree=False, rootAxis='x')
+    def search(self, nodeSearch, distThresh, getPath=False, rootAxis='x'):
+        if(not self.doubleTree):
+            node, distFlag, path = self.searchHelper(nodeSearch, distThresh, getPath, rootAxis='x')
             treeType = 'x'
         else:
-            nodeX, distFlagX, pathX = self.searchHelper(nodeSearch, distThresh, getPath, doubleTree=False, rootAxis='x')
-            nodeY, distFlagY, pathY = self.searchHelper(nodeSearch, distThresh, getPath, doubleTree=False, rootAxis='y')
+            nodeX, distFlagX, pathX = self.searchHelper(nodeSearch, distThresh, getPath, rootAxis='x')
+            nodeY, distFlagY, pathY = self.searchHelper(nodeSearch, distThresh, getPath, rootAxis='y')
 
             # send out min of both of these trees
             if(distance(nodeSearch.val, nodeX.val) >= distance(nodeSearch.val, nodeY.val)):

@@ -50,16 +50,18 @@ else:
 
 
 print("--- DOUBLE axis kd tree test ---")
-kdtree = KDTree(value=(1,1))
+kdtree = KDTree(value=(1,1), doubleTree=True)
+
+pdb.set_trace()
 
 print(">>> INSERT ---")
-nd = Node(value=(0,0), doubleTree=True)
+nd = Node(value=(0,5))
 kdtree.insert(nd)
-nd = Node(value=(2,2), doubleTree=True)
+nd = Node(value=(2,2))
 kdtree.insert(nd)
-nd = Node(value=(3,-5), doubleTree=True)
+nd = Node(value=(3,-5))
 kdtree.insert(nd)
-nd = Node(value=(4,20), doubleTree=True)
+nd = Node(value=(4,-20))
 kdtree.insert(nd)
 
 pdb.set_trace()
