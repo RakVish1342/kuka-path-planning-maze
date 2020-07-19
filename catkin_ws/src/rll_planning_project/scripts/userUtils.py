@@ -1,4 +1,5 @@
 import pdb
+import copy
 import numpy as np
 
 def distance(pt1, pt2):
@@ -80,10 +81,10 @@ class KDTree:
     '''
     def insert(self, nodeIns):
         if(not self.doubleTree):
-            self.insertHelper(nodeIns, rootAxis='x')
+            self.insertHelper(copy.deepcopy(nodeIns), rootAxis='x')
         else:
-            self.insertHelper(nodeIns, rootAxis='x')
-            self.insertHelper(nodeIns, rootAxis='y')
+            self.insertHelper(copy.deepcopy(nodeIns), rootAxis='x')
+            self.insertHelper(copy.deepcopy(nodeIns), rootAxis='y')
 
 
     '''
