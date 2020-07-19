@@ -180,17 +180,21 @@ class KDTree:
             nodeX, distFlagX, pathX = self.searchHelper(nodeSearch, distThresh, getPath, rootAxis='x')
             nodeY, distFlagY, pathY = self.searchHelper(nodeSearch, distThresh, getPath, rootAxis='y')
 
+            pdb.set_trace()
+
             # send out min of both of these trees
-            if(distance(nodeSearch.val, nodeX.val) >= distance(nodeSearch.val, nodeY.val)):
+            if(distance(nodeSearch.val, nodeX.val) <= distance(nodeSearch.val, nodeY.val)):
                 node = nodeX
                 distFlag = distFlagX
                 path = pathX
+                treeType = 'x'
             else:
                 node = nodeY
                 distFlag = distFlagY
                 path = pathY
+                treeType = 'y'
         
-        return node, distFlag, path
+        return node, distFlag, path, treeType
 
             
         
