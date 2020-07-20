@@ -149,7 +149,8 @@ def plan_to_goal(req):
         goalConfig.x = goalLoc[0]
         goalConfig.y = goalLoc[1]
         
-        allowedOrients = np.array([])
+        # allowedOrients = np.array([])
+        allowedOrients = []
         chkFlag = False
         retTh = None
         for th in orients:
@@ -157,18 +158,20 @@ def plan_to_goal(req):
             tmpFlag = check_srv(startConfig, goalConfig)
             if(tmpFlag.valid):
                 chkFlag = True
-                allowedOrients = np.append(allowedOrients, th)
+                # allowedOrients = np.append(allowedOrients, th)
+                allowedOrients.append(th)
 
-        if(chkFlag):
-            if(len(allowedOrients) == 1):
-                retTh = allowedOrients[0]
-            else:
-                # Pick the theta that's the closest to existing configuration
-                diffTh = np.abs( startNode.theta - allowedOrients )
-                idx = np.argmin(diffTh)
-                retTh = allowedOrients[idx]
+        # if(chkFlag):
+        #     if(len(allowedOrients) == 1):
+        #         retTh = allowedOrients[0]
+        #     else:
+        #         # Pick the theta that's the closest to existing configuration
+        #         diffTh = np.abs( startNode.theta - allowedOrients )
+        #         idx = np.argmin(diffTh)
+        #         retTh = allowedOrients[idx]
 
-        return (chkFlag, retTh)
+        # return (chkFlag, retTh)
+        return (chkFlag, allowedOrients)
     
     def createRRTNode(value, theta=None):
         node = userUtils.Node()
@@ -321,7 +324,8 @@ def plan_to_goal(req):
         ## Add a reachability check before inserting into rrt
         ## Add orientation check
         # pdb.set_trace()
-        chkFlag, allowedTh = checkOrientations(closestNode, sampleNode.val)
+        # chkFlag, allowedTh = checkOrientations(closestNode, sampleNode.val)
+        chkFlag, allowedOrients = checkOrientations(closestNode, sampleNode.val)
 
 
 
@@ -372,29 +376,31 @@ def plan_to_goal(req):
         # print("CHKOUT::", chkFlag, allowedTh, sampleNode.val)
         if(chkFlag):
         # if(1):
-            sampleNode.theta = allowedTh
-            rrt.insert(sampleNode)
-            markPt = createMarkerPoint(sampleNode, ctr)
-            markLine = createMarkerLine(closestNode, sampleNode, ctr)
-            marks.markers.append(markPt)
-            marks.markers.append(markLine)
-
-            finalNode = None
-            ### Temporary code to get path to cross narrow gaps
-            if(sampleNode.val[0] >= 0.38):
-                finalNode = sampleNode
-                break
-
-            # Check if this node can reach goal node
-            goal = (xGoal, yGoal)
-            chkFlag, allowedTh = checkOrientations(sampleNode, goal)
-            if(chkFlag):
-                goalNode = createRRTNode(goal)
-                goalNode.theta = allowedTh
+            for allowedTh in allowedOrients:
+                sampleNode.theta = allowedTh
                 rrt.insert(sampleNode)
-                goalFound = True
-                break
+                markPt = createMarkerPoint(sampleNode, ctr)
+                markLine = createMarkerLine(closestNode, sampleNode, ctr)
+                marks.markers.append(markPt)
+                marks.markers.append(markLine)
 
+                
+                ### Temporary code to get path to cross narrow gaps
+                finalNode = None
+                if(sampleNode.val[0] >= 0.38):
+                    finalNode = sampleNode
+                    break
+
+                # Check if this node can reach goal node
+                goal = (xGoal, yGoal)
+                chkFlag, allowedTh = checkOrientations(sampleNode, goal)
+                if(chkFlag):
+                    goalNode = createRRTNode(goal)
+                    goalNode.theta = allowedTh
+                    rrt.insert(sampleNode)
+                    goalFound = True
+                    break
+                ctr += 1 # To generate unique ID for multiple points if generated
         else:
             # print(">>> Unable to use point. CHKFLG False: ", str(sample) + ", ", str(sampleNode.theta))
             markPt = createMarkerPoint(sampleNode, failCtr, color=(0, 0, 1.0), ns="rrt_CHK_fail_sample", lifetime=10)
