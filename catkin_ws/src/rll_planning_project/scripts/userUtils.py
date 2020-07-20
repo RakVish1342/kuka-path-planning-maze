@@ -79,6 +79,8 @@ class KDTree:
     Insert a node into kdtree
     '''
     def insert(self, nodeIns):
+        # Perform a deepcopy while inserting nodes so that cross referencing between nodes does not happen, 
+        # especially in the case of dualTree
         if(not self.doubleTree):
             self.insertHelper(copy.deepcopy(nodeIns), rootAxis='x')
         else:

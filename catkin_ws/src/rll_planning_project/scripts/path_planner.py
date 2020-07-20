@@ -18,6 +18,8 @@ import userUtils
 import tf
 import time
 
+import pdb
+import copy
 
 def plan_to_goal(req):
     """ Plan a path from Start to Goal """
@@ -265,7 +267,14 @@ def plan_to_goal(req):
     failCtr = 0
     mark = createMarkerPoint(rrt.root, ctr, color=(0, 1.0, 0))
     marks.markers.append(mark)
-    while(ctr < totSamples or (not bReachedGoal) ):
+
+    # totSamples = 3
+    # samples = [(xStart, yStart), (xStart-0.01, yStart), (xStart-0.02, yStart), 
+    #     (xStart-0.03, yStart), (xStart-0.04, yStart), (xStart-0.05, yStart), (xStart-0.06, yStart), 
+    #     (xStart-0.07, yStart), (xStart-0.08, yStart), (xStart-0.09, yStart), (xStart-0.1, yStart)]
+    # manualFlag = False
+    # while(not manualFlag):
+    while(ctr < totSamples or (not bReachedGoal) ):    
         # print("===:"+str(ctr))
 
         # Sample a point
@@ -285,16 +294,22 @@ def plan_to_goal(req):
         markerPt = createMarkerPoint(startNode, 999998, color=(1.0, 1.0, 1.0), opaque=0.4, ns="rrt_search_domain", scale=2*radiusInner)
         marks.markers.append(markerPt)
 
-        # sample = getSample(xDomain, yDomain, xDomMax, yDomMax)
-        sample, maxTriesFlag, _ = pointFromPeri(radiusInner, radiusOuter, center, limits, maxTriesLimit, maxTriesFlag)
+        # pdb.set_trace()
         # sample = (xStart+0.2, yStart)
+        # if(ctr<10):
+        #     sample = samples[ctr-1]
+        # else:
+        #     sample = samples[len(samples)-1]
+
+
+        sample, maxTriesFlag, _ = pointFromPeri(radiusInner, radiusOuter, center, limits, maxTriesLimit, maxTriesFlag)
         sampleNode = createRRTNode(sample)
 
         if (maxTriesFlag): # Failed to generate points. Reached limit. Start generating points over full domain now
             # print(">>> Reached the domain limit. Using entire domain now.")
             radiusInner = 0
 
-        closestNode, distFlag, _ = rrt.search(sampleNode, distSearch)
+        closestNode, distFlag, _, _ = rrt.search(sampleNode, distSearch)
 
         # If sample is not within distSearch away from closest point in rrt, 
         # Find a point along the line from closest point to sample point, which 
@@ -305,7 +320,55 @@ def plan_to_goal(req):
 
         ## Add a reachability check before inserting into rrt
         ## Add orientation check
+        # pdb.set_trace()
         chkFlag, allowedTh = checkOrientations(closestNode, sampleNode.val)
+
+
+
+# ############ To give access to move_srv
+# ############ chksrv
+
+#         startNode = closestNode
+#         goalLoc = sampleNode.val 
+
+
+#         ## Do something about orientation having to be maintained similar to previous orientations...OR I think since
+#         # poses are required, this will be done automatically
+#         PI = 3.14159
+#         orients = (0, PI/2, PI, -PI/2)
+#         # orients = (PI/2, PI, -PI/2)
+        
+#         startConfig = Pose2D()
+#         startConfig.x = startNode.val[0]
+#         startConfig.y = startNode.val[1]
+#         startConfig.theta = startNode.theta
+#         goalConfig = Pose2D()
+#         goalConfig.x = goalLoc[0]
+#         goalConfig.y = goalLoc[1]
+        
+#         allowedOrients = np.array([])
+#         chkFlag = False
+#         retTh = None
+#         pdb.set_trace()
+#         for th in orients:
+#             goalConfig.theta = th
+#             tmpFlag = check_srv(startConfig, goalConfig)
+#             if(tmpFlag.valid):
+#                 chkFlag = True
+#                 allowedOrients = np.append(allowedOrients, th)
+
+#         if(chkFlag):
+#             if(len(allowedOrients) == 1):
+#                 retTh = allowedOrients[0]
+#             else:
+#                 # Pick the theta that's the closest to existing configuration
+#                 diffTh = np.abs( startNode.theta - allowedOrients )
+#                 idx = np.argmin(diffTh)
+#                 retTh = allowedOrients[idx]
+
+# ############ chksrvEnd
+
+
         # print("CHKOUT::", chkFlag, allowedTh, sampleNode.val)
         if(chkFlag):
         # if(1):
@@ -315,6 +378,12 @@ def plan_to_goal(req):
             markLine = createMarkerLine(closestNode, sampleNode, ctr)
             marks.markers.append(markPt)
             marks.markers.append(markLine)
+
+            finalNode = None
+            ### Temporary code to get path to cross narrow gaps
+            if(sampleNode.val[0] >= 0.38):
+                finalNode = sampleNode
+                break
 
             # Check if this node can reach goal node
             goal = (xGoal, yGoal)
@@ -336,8 +405,20 @@ def plan_to_goal(req):
         markerPub.publish(marks)
     #markerPub.publish(marks)
 
+    ### Temporary code to get path to cross narrow gaps
+    if(finalNode is not None):
+        print("FOUND CROSSING NODEEEEEEEEEEEEEEEEEEEE")
+        closestNode, distFlag, path, treeType = rrt.search(finalNode, 0.001, getPath=True)
+        if(distFlag):
+            print("Path Retrieved: ", path)
+            print("Treetype: ", treeType)
+            for p in path:
+                print(p.val, p.theta)
+        else:
+            print("Path not found.")
+
     # Send sequence of moves to goal
-    _, distFlag, path = rrt.search(sampleNode, 0.001, getPath=True)
+    _, distFlag, path, _ = rrt.search(sampleNode, 0.001, getPath=True)
     ctr = 0
     while( ctr<len(path) ):
         p = path[ctr]
