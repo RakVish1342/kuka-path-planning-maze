@@ -239,6 +239,7 @@ def plan_to_goal(req):
 
     rrtX = xStart
     rrtY = yStart
+    rrtTh = tStart
     goal = (xGoal, yGoal)
     goalFound = False
 
@@ -264,13 +265,14 @@ def plan_to_goal(req):
         maxTriesLimit = 200
         totSamples = 200
         radiusIncBatch = 100
-
-        distSearch = 0.05
+        
+        distUnit = 0.01
+        distSearch = 5*distUnit # is the min resolution allowed by rll SDK
         distExtend = 2*distSearch
         distCorrection = 0.3 # Later for RRT*
 
         # Initialize kdtree with root at start location 
-        rrt = userUtils.KDTree(value=center, theta=tStart, doubleTree=True)
+        rrt = userUtils.KDTree(value=center, theta=rrtTh, doubleTree=True)
         if(not rrt.doubleTree):
             mark = createMarkerPoint(rrt.root, ctr, color=(0, 1.0, 0))
         else:
@@ -371,6 +373,7 @@ def plan_to_goal(req):
         startNode, distFlag, path, _ = rrt.search(goalNode, 0.001, getPath=True)
         rrtX = startNode.val[0]
         rrtY = startNode.val[1]
+        rrtTh = startNode.theta
 
         ### Move incrementally
         ctr = 0
