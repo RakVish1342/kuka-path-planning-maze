@@ -136,11 +136,10 @@ def plan_to_goal(req):
     
     def checkOrientations(startNode, goalLoc):
         ## Do something about orientation having to be maintained similar to previous orientations...OR I think since
-        # poses are required, this will be done automatically
-        PI = 3.14159
-        orients = (0, PI/2, PI, -PI/2)
-        # orients = (0, PI/4, PI/2, 3*PI/4, PI, -PI/4, -PI/2, -3*PI/4)
-        # orients = (PI/2, PI, -PI/2)
+        # poses are required, this will be done automatically. OR can be added as a componenet that calculates the distance
+        # BUT since I'm considering all orientations rather than just closest, won't need to do any of this.
+        orients = (0, math.pi/2, math.pi, -math.pi/2)
+        # orients = (0, math.pi/4, math.pi/2, 3*math.pi/4, math.pi, -math.pi/4, -math.pi/2, -3*math.pi/4)
         
         startConfig = Pose2D()
         startConfig.x = startNode.val[0]
@@ -162,16 +161,6 @@ def plan_to_goal(req):
                 # allowedOrients = np.append(allowedOrients, th)
                 allowedOrients.append(th)
 
-        # if(chkFlag):
-        #     if(len(allowedOrients) == 1):
-        #         retTh = allowedOrients[0]
-        #     else:
-        #         # Pick the theta that's the closest to existing configuration
-        #         diffTh = np.abs( startNode.theta - allowedOrients )
-        #         idx = np.argmin(diffTh)
-        #         retTh = allowedOrients[idx]
-
-        # return (chkFlag, retTh)
         return (chkFlag, allowedOrients)
     
     def createRRTNode(value, theta=None):
@@ -251,13 +240,9 @@ def plan_to_goal(req):
     rrtX = xStart
     rrtY = yStart
 
-    # totSamples = 3
-    # samples = [(xStart, yStart), (xStart-0.01, yStart), (xStart-0.02, yStart), 
-    #     (xStart-0.03, yStart), (xStart-0.04, yStart), (xStart-0.05, yStart), (xStart-0.06, yStart), 
-    #     (xStart-0.07, yStart), (xStart-0.08, yStart), (xStart-0.09, yStart), (xStart-0.1, yStart)]
     # manualFlag = False
     mainCtr = 0
-    mainCtrMax = 2
+    mainCtrMax = 30
     while(mainCtr <= mainCtrMax):
 
         # Incremental Domain Expansion
@@ -291,7 +276,7 @@ def plan_to_goal(req):
         # while(not manualFlag):
         # while(ctr < totSamples or (not bReachedGoal) ):
         while(ctr < totSamples):    
-            # print("===:"+str(ctr))
+            # print("===>"+str(ctr))
 
             # Sample a point
             if( (not maxTriesFlag) and ctr % radiusIncBatch == 0):
@@ -309,14 +294,6 @@ def plan_to_goal(req):
             marks.markers.append(markerPt)
             markerPt = createMarkerPoint(rrtNode, 999998, color=(1.0, 1.0, 1.0), opaque=0.4, ns="rrt_search_domain", scale=2*radiusInner)
             marks.markers.append(markerPt)
-
-            # pdb.set_trace()
-            # sample = (xStart+0.2, yStart)
-            # if(ctr<10):
-            #     sample = samples[ctr-1]
-            # else:
-            #     sample = samples[len(samples)-1]
-
 
             sample, maxTriesFlag, _ = pointFromPeri(radiusInner, radiusOuter, center, limits, maxTriesLimit, maxTriesFlag)
             sampleNode = createRRTNode(sample)
@@ -336,59 +313,9 @@ def plan_to_goal(req):
 
             ## Add a reachability check before inserting into rrt
             ## Add orientation check
-            # pdb.set_trace()
-            # chkFlag, allowedTh = checkOrientations(closestNode, sampleNode.val)
             chkFlag, allowedOrients = checkOrientations(closestNode, sampleNode.val)
 
-
-
-    # ############ To give access to move_srv
-    # ############ chksrv
-
-    #         startNode = closestNode
-    #         goalLoc = sampleNode.val 
-
-
-    #         ## Do something about orientation having to be maintained similar to previous orientations...OR I think since
-    #         # poses are required, this will be done automatically
-    #         PI = 3.14159
-    #         orients = (0, PI/2, PI, -PI/2)
-    #         # orients = (PI/2, PI, -PI/2)
-            
-    #         startConfig = Pose2D()
-    #         startConfig.x = startNode.val[0]
-    #         startConfig.y = startNode.val[1]
-    #         startConfig.theta = startNode.theta
-    #         goalConfig = Pose2D()
-    #         goalConfig.x = goalLoc[0]
-    #         goalConfig.y = goalLoc[1]
-            
-    #         allowedOrients = np.array([])
-    #         chkFlag = False
-    #         retTh = None
-    #         pdb.set_trace()
-    #         for th in orients:
-    #             goalConfig.theta = th
-    #             tmpFlag = check_srv(startConfig, goalConfig)
-    #             if(tmpFlag.valid):
-    #                 chkFlag = True
-    #                 allowedOrients = np.append(allowedOrients, th)
-
-    #         if(chkFlag):
-    #             if(len(allowedOrients) == 1):
-    #                 retTh = allowedOrients[0]
-    #             else:
-    #                 # Pick the theta that's the closest to existing configuration
-    #                 diffTh = np.abs( startNode.theta - allowedOrients )
-    #                 idx = np.argmin(diffTh)
-    #                 retTh = allowedOrients[idx]
-
-    # ############ chksrvEnd
-
-
-            # print("CHKOUT::", chkFlag, allowedTh, sampleNode.val)
             if(chkFlag):
-            # if(1):
                 for allowedTh in allowedOrients:
                     sampleNode.theta = allowedTh
                     rrt.insert(sampleNode)
@@ -398,12 +325,6 @@ def plan_to_goal(req):
                     marks.markers.append(markLine)
                     ctr += 1 # To generate unique ID for multiple points if generated
                     
-                    # ### Temporary code to get path to cross narrow gaps
-                    # finalNode = None
-                    # if(sampleNode.val[0] >= 0.38):
-                    #     finalNode = sampleNode
-                    #     break
-
                     # Check if this node can reach goal node
                     goal = (xGoal, yGoal)
                     # Artificially restrict the direct goal check distance to that allowed by tree
@@ -430,48 +351,53 @@ def plan_to_goal(req):
             markerPub.publish(marks)
 
         #markerPub.publish(marks)
+
         if(not goalFound):
             print("GOALLLLLLLLLLLLLL NOT FOUND YET")
-            # markPt = createMarkerPoint(sampleNode, failCtr, color=(0, 0, 1.0), ns="rrt_CHK_fail_sample", lifetime=10, action='delall')
-            # markLine = createMarkerLine(closestNode, sampleNode, ctr, action='delall')
-            goal = (xGoal, yGoal)
-            goalNode = createRRTNode(goal)
-            startNode, distFlag, path, treeType = rrt.search(goalNode, 0.001)
-            rrtX = startNode.val[0]
-            rrtY = startNode.val[1]
         else:
             print("FOUND THE GOALLLLLLLLLLLLLL")
+
+        markPt = createMarkerPoint(sampleNode, failCtr, color=(0, 0, 1.0), lifetime=10, action='delall')
+        markLine = createMarkerLine(closestNode, sampleNode, ctr, action='delall')
+        markPt = createMarkerPoint(sampleNode, failCtr, color=(0, 0, 1.0), ns="rrt_CHK_fail_sample", lifetime=10, action='delall')
+
+        goal = (xGoal, yGoal)
+        goalNode = createRRTNode(goal)
+        startNode, distFlag, path, _ = rrt.search(goalNode, 0.001, getPath=True)
+        rrtX = startNode.val[0]
+        rrtY = startNode.val[1]
+
+        ### Move incrementally
+        ctr = 0
+        while( ctr<len(path) ):
+            p = path[ctr]
+            pose = Pose2D()
+            pose.x = p.val[0]
+            pose.y = p.val[1]
+            pose.theta = p.theta
+            resp = move_srv(pose)
+            if(not resp.success):
+                print(">>> Error moving. Nodes may be too close. Going to next node in sequence. : ", p.val)
+            ctr += 1
+        ###
         
         mainCtr += 1
 
 
-    ### Temporary code to get path to cross narrow gaps
-    if(finalNode is not None):
-        print("FOUND CROSSING NODEEEEEEEEEEEEEEEEEEEE")
-        closestNode, distFlag, path, treeType = rrt.search(finalNode, 0.001, getPath=True)
-        if(distFlag):
-            print("Path Retrieved: ", path)
-            print("Treetype: ", treeType)
-            for p in path:
-                print(p.val, p.theta)
-        else:
-            print("Path not found.")
-
-
-    # Send sequence of moves to goal
-    _, distFlag, path, _ = rrt.search(sampleNode, 0.001, getPath=True)
-    ctr = 0
-    while( ctr<len(path) ):
-        p = path[ctr]
-        pose = Pose2D()
-        pose.x = p.val[0]
-        pose.y = p.val[1]
-        pose.theta = p.theta
-        resp = move_srv(pose)
-        if(not resp.valid):
-            print(">>> Error moving: ", p.val)
-        else:
-            ctr += 1
+    # # Send sequence of moves to goal
+    # _, distFlag, path, _ = rrt.search(sampleNode, 0.001, getPath=True)
+    # ctr = 0
+    # while( ctr<len(path) ):
+    #     p = path[ctr]
+    #     pose = Pose2D()
+    #     pose.x = p.val[0]
+    #     pose.y = p.val[1]
+    #     pose.theta = p.theta
+    #     resp = move_srv(pose)
+    #     if(not resp.success):
+    #         print(">>> Error moving: ", p.val)
+    #     else:
+    #         ctr += 1
                
 
     # # Output: movement commands
