@@ -239,6 +239,7 @@ def plan_to_goal(req):
 
     rrtX = xStart
     rrtY = yStart
+    goal = (xGoal, yGoal)
     goalFound = False
 
     # manualFlag = False
@@ -295,7 +296,10 @@ def plan_to_goal(req):
             markerPt = createMarkerPoint(rrtNode, 999998, color=(1.0, 1.0, 1.0), opaque=0.4, ns="rrt_search_domain", scale=2*radiusInner)
             marks.markers.append(markerPt)
 
-            sample, maxTriesFlag, _ = pointFromPeri(radiusInner, radiusOuter, center, limits, maxTriesLimit, maxTriesFlag)
+            if(not goalFound):
+                sample, maxTriesFlag, _ = pointFromPeri(radiusInner, radiusOuter, center, limits, maxTriesLimit, maxTriesFlag)
+            else:
+                sample = goal
             sampleNode = createRRTNode(sample)
 
             if (maxTriesFlag): # Failed to generate points. Reached limit. Start generating points over full domain now
@@ -326,10 +330,10 @@ def plan_to_goal(req):
                     ctr += 1 # To generate unique ID for multiple points if generated
                     
                     # Check if this node can reach goal node
-                    goal = (xGoal, yGoal)
                     goalFound = False
                     # Artificially restrict the direct goal check distance to that allowed by tree
                     if(userUtils.distance(sampleNode.val, goal) <= distExtend):
+                        # pdb.set_trace()
                         ### goalTest()
                         chkFlag, allowedTh = checkOrientations(sampleNode, goal)
                         if(chkFlag):
@@ -360,7 +364,6 @@ def plan_to_goal(req):
         markLine = createMarkerLine(closestNode, sampleNode, ctr, action='delall')
         markPt = createMarkerPoint(sampleNode, failCtr, color=(0, 0, 1.0), ns="rrt_CHK_fail_sample", lifetime=10, action='delall')
 
-        goal = (xGoal, yGoal)
         goalNode = createRRTNode(goal)
         startNode, distFlag, path, _ = rrt.search(goalNode, 0.001, getPath=True)
         rrtX = startNode.val[0]
@@ -379,6 +382,12 @@ def plan_to_goal(req):
                 print(">>> Error moving. Nodes may be too close. Going to next node in sequence. : ", p.val)
             ctr += 1
         ###
+
+        ### If goal actually reached, exit
+        if(path is not None):
+            if(path[-1].val == goal):
+                print("Moved to goal. Exiting")
+                break
         
         mainCtr += 1
 
