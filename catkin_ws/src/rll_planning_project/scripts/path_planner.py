@@ -139,6 +139,7 @@ def plan_to_goal(req):
         # poses are required, this will be done automatically
         PI = 3.14159
         orients = (0, PI/2, PI, -PI/2)
+        # orients = (0, PI/4, PI/2, 3*PI/4, PI, -PI/4, -PI/2, -3*PI/4)
         # orients = (PI/2, PI, -PI/2)
         
         startConfig = Pose2D()
@@ -179,7 +180,7 @@ def plan_to_goal(req):
         node.theta = theta
         return node
 
-    def createMarkerPoint(node, ctr, color=(1.0, 0, 0), opaque=1.0, ns="rrt_sample_points", scale=0.02, lifetime=0):
+    def createMarkerPoint(node, ctr, color=(1.0, 0, 0), opaque=1.0, ns="rrt_sample_points", scale=0.02, lifetime=0, action='add'):
         markerPt = Marker()
         markerPt.header.stamp = rospy.Time.now()
         markerPt.header.frame_id = "Maze" # frame wrt which this marker is defined        
@@ -187,7 +188,10 @@ def plan_to_goal(req):
         markerPt.id = ctr
 
         markerPt.type = Marker.SPHERE # Or value 2
-        markerPt.action = Marker.ADD # Or value 0 Or .UPDATE
+        if(action == 'add'):
+            markerPt.action = Marker.ADD # Or value 0 Or .UPDATE
+        elif(action == 'delall'):
+            markerPt.action = Marker.DELETEALL
 
         ps = Pose()
         ps.position.x = node.val[0]
@@ -206,7 +210,7 @@ def plan_to_goal(req):
         
         return markerPt
 
-    def createMarkerLine(nodeSrc, nodeDst, ctr):
+    def createMarkerLine(nodeSrc, nodeDst, ctr, action='add'):
         markerPt = Marker()
         markerPt.header.stamp = rospy.Time.now()
         markerPt.header.frame_id = "Maze"
@@ -214,7 +218,10 @@ def plan_to_goal(req):
         markerPt.id = ctr # frame wrt which this marker is defined
 
         markerPt.type = Marker.ARROW # Or value 0
-        markerPt.action = Marker.ADD # Or value 0 Or .UPDATE
+        if(action == 'add'):
+            markerPt.action = Marker.ADD # Or value 0 Or .UPDATE
+        elif(action == 'delall'):
+            markerPt.action = Marker.DELETEALL
 
         src = Point()
         src.x = nodeSrc.val[0]
@@ -236,180 +243,207 @@ def plan_to_goal(req):
 
         return markerPt
 
-
-    # Incremental Domain Expansion
-
-    center = (xStart, yStart)
-    limits = (-map_width/2.0, +map_width/2.0, -map_length/2.0, +map_length/2.0) # xmin, xmax, ymin, ymax
-    radiusOuter = 0
-    radiusInner = radiusOuter
-    radiusInc = 0.05
-    perimeterInner = 0
-    perimeterOuter = 0
-    # Flag to check if domain should stop expanding due to constant out of bounds error.
-    # ie. Domain is pretty much the size of global domain
-    maxTriesFlag = False
-    maxTriesLimit = 200
-    totSamples = 5000
-    radiusIncBatch = 100
-
     # To visualize the RRT
     # Using latched publishers so that RRT data persists after final publish event
     markerPub = rospy.Publisher('/rrt/samples', MarkerArray, queue_size=10, latch=True)
     marks = MarkerArray()
 
-    distSearch = 0.1
-    distCorrection = 0.3 # Later for RRT*
-    bReachedGoal = False
-
-     # Initialize kdtree with root at start location 
-    rrt = userUtils.KDTree(value=(xStart, yStart), theta=tStart)
-
-    ctr = 0
-    failCtr = 0
-    failCtr = 0
-    mark = createMarkerPoint(rrt.root, ctr, color=(0, 1.0, 0))
-    marks.markers.append(mark)
+    rrtX = xStart
+    rrtY = yStart
 
     # totSamples = 3
     # samples = [(xStart, yStart), (xStart-0.01, yStart), (xStart-0.02, yStart), 
     #     (xStart-0.03, yStart), (xStart-0.04, yStart), (xStart-0.05, yStart), (xStart-0.06, yStart), 
     #     (xStart-0.07, yStart), (xStart-0.08, yStart), (xStart-0.09, yStart), (xStart-0.1, yStart)]
     # manualFlag = False
-    # while(not manualFlag):
-    while(ctr < totSamples or (not bReachedGoal) ):    
-        # print("===:"+str(ctr))
+    mainCtr = 0
+    mainCtrMax = 2
+    while(mainCtr <= mainCtrMax):
 
-        # Sample a point
-        if( (not maxTriesFlag) and ctr % radiusIncBatch == 0):
-            # print(">>> Domain Expanded")
-            print("===:"+str(ctr))            
-            radiusInner = radiusOuter
-            radiusOuter += radiusInc
-            radiusIncBatch = radiusIncBatch + ( radiusIncBatch + int(0.05*radiusIncBatch) )
-            
-        ctr += 1
+        # Incremental Domain Expansion
+        center = (rrtX, rrtY)
+        limits = (-map_width/2.0, +map_width/2.0, -map_length/2.0, +map_length/2.0) # xmin, xmax, ymin, ymax
 
-        # Visualize search domain
-        startNode = createRRTNode( (xStart, yStart) )
-        markerPt = createMarkerPoint(startNode, 999999, color=(1.0, 1.0, 1.0), opaque=0.2, ns="rrt_search_domain", scale=2*radiusOuter)
-        marks.markers.append(markerPt)
-        markerPt = createMarkerPoint(startNode, 999998, color=(1.0, 1.0, 1.0), opaque=0.4, ns="rrt_search_domain", scale=2*radiusInner)
-        marks.markers.append(markerPt)
+        ctr = 0
+        failCtr = 0
+        radiusOuter = 0
+        radiusInner = radiusOuter
+        radiusInc = 0.05
+        perimeterInner = 0
+        perimeterOuter = 0
+        # Flag to check if domain should stop expanding due to constant out of bounds error.
+        # ie. Domain is pretty much the size of global domain
+        maxTriesFlag = False
+        maxTriesLimit = 200
+        totSamples = 200
+        radiusIncBatch = 100
 
-        # pdb.set_trace()
-        # sample = (xStart+0.2, yStart)
-        # if(ctr<10):
-        #     sample = samples[ctr-1]
-        # else:
-        #     sample = samples[len(samples)-1]
+        distSearch = 0.05
+        distExtend = 2*distSearch
+        distCorrection = 0.3 # Later for RRT*
+        bReachedGoal = False
+
+        # Initialize kdtree with root at start location 
+        rrt = userUtils.KDTree(value=center, theta=tStart)
+        mark = createMarkerPoint(rrt.root, ctr, color=(0, 1.0, 0))
+        marks.markers.append(mark)
+
+        # while(not manualFlag):
+        # while(ctr < totSamples or (not bReachedGoal) ):
+        while(ctr < totSamples):    
+            # print("===:"+str(ctr))
+
+            # Sample a point
+            if( (not maxTriesFlag) and ctr % radiusIncBatch == 0):
+                # print(">>> Domain Expanded")
+                print("===:"+str(ctr))            
+                radiusInner = radiusOuter # Comment out to use full domain so far
+                radiusOuter += radiusInc
+                # radiusIncBatch = radiusIncBatch + ( radiusIncBatch + int(0.02*radiusIncBatch) )
+                
+            ctr += 1
+
+            # Visualize search domain
+            rrtNode = createRRTNode( (rrtX, rrtY) )
+            markerPt = createMarkerPoint(rrtNode, 999999, color=(1.0, 1.0, 1.0), opaque=0.2, ns="rrt_search_domain", scale=2*radiusOuter)
+            marks.markers.append(markerPt)
+            markerPt = createMarkerPoint(rrtNode, 999998, color=(1.0, 1.0, 1.0), opaque=0.4, ns="rrt_search_domain", scale=2*radiusInner)
+            marks.markers.append(markerPt)
+
+            # pdb.set_trace()
+            # sample = (xStart+0.2, yStart)
+            # if(ctr<10):
+            #     sample = samples[ctr-1]
+            # else:
+            #     sample = samples[len(samples)-1]
 
 
-        sample, maxTriesFlag, _ = pointFromPeri(radiusInner, radiusOuter, center, limits, maxTriesLimit, maxTriesFlag)
-        sampleNode = createRRTNode(sample)
-
-        if (maxTriesFlag): # Failed to generate points. Reached limit. Start generating points over full domain now
-            # print(">>> Reached the domain limit. Using entire domain now.")
-            radiusInner = 0
-
-        closestNode, distFlag, _, _ = rrt.search(sampleNode, distSearch)
-
-        # If sample is not within distSearch away from closest point in rrt, 
-        # Find a point along the line from closest point to sample point, which 
-        # is at a given dist away from closest point
-        if(~distFlag):
-            sample = findPointAlongLine(closestNode.val, sampleNode.val, distSearch)
+            sample, maxTriesFlag, _ = pointFromPeri(radiusInner, radiusOuter, center, limits, maxTriesLimit, maxTriesFlag)
             sampleNode = createRRTNode(sample)
 
-        ## Add a reachability check before inserting into rrt
-        ## Add orientation check
-        # pdb.set_trace()
-        # chkFlag, allowedTh = checkOrientations(closestNode, sampleNode.val)
-        chkFlag, allowedOrients = checkOrientations(closestNode, sampleNode.val)
+            if (maxTriesFlag): # Failed to generate points. Reached limit. Start generating points over full domain now
+                # print(">>> Reached the domain limit. Using entire domain now.")
+                radiusInner = 0
+
+            closestNode, distFlag, _, _ = rrt.search(sampleNode, distSearch)
+
+            # If sample is not within distSearch away from closest point in rrt, 
+            # Find a point along the line from closest point to sample point, which 
+            # is at a given dist away from closest point
+            if(~distFlag):
+                sample = findPointAlongLine(closestNode.val, sampleNode.val, distSearch) # or use distExtend here?
+                sampleNode = createRRTNode(sample)
+
+            ## Add a reachability check before inserting into rrt
+            ## Add orientation check
+            # pdb.set_trace()
+            # chkFlag, allowedTh = checkOrientations(closestNode, sampleNode.val)
+            chkFlag, allowedOrients = checkOrientations(closestNode, sampleNode.val)
 
 
 
-# ############ To give access to move_srv
-# ############ chksrv
+    # ############ To give access to move_srv
+    # ############ chksrv
 
-#         startNode = closestNode
-#         goalLoc = sampleNode.val 
-
-
-#         ## Do something about orientation having to be maintained similar to previous orientations...OR I think since
-#         # poses are required, this will be done automatically
-#         PI = 3.14159
-#         orients = (0, PI/2, PI, -PI/2)
-#         # orients = (PI/2, PI, -PI/2)
-        
-#         startConfig = Pose2D()
-#         startConfig.x = startNode.val[0]
-#         startConfig.y = startNode.val[1]
-#         startConfig.theta = startNode.theta
-#         goalConfig = Pose2D()
-#         goalConfig.x = goalLoc[0]
-#         goalConfig.y = goalLoc[1]
-        
-#         allowedOrients = np.array([])
-#         chkFlag = False
-#         retTh = None
-#         pdb.set_trace()
-#         for th in orients:
-#             goalConfig.theta = th
-#             tmpFlag = check_srv(startConfig, goalConfig)
-#             if(tmpFlag.valid):
-#                 chkFlag = True
-#                 allowedOrients = np.append(allowedOrients, th)
-
-#         if(chkFlag):
-#             if(len(allowedOrients) == 1):
-#                 retTh = allowedOrients[0]
-#             else:
-#                 # Pick the theta that's the closest to existing configuration
-#                 diffTh = np.abs( startNode.theta - allowedOrients )
-#                 idx = np.argmin(diffTh)
-#                 retTh = allowedOrients[idx]
-
-# ############ chksrvEnd
+    #         startNode = closestNode
+    #         goalLoc = sampleNode.val 
 
 
-        # print("CHKOUT::", chkFlag, allowedTh, sampleNode.val)
-        if(chkFlag):
-        # if(1):
-            for allowedTh in allowedOrients:
-                sampleNode.theta = allowedTh
-                rrt.insert(sampleNode)
-                markPt = createMarkerPoint(sampleNode, ctr)
-                markLine = createMarkerLine(closestNode, sampleNode, ctr)
-                marks.markers.append(markPt)
-                marks.markers.append(markLine)
+    #         ## Do something about orientation having to be maintained similar to previous orientations...OR I think since
+    #         # poses are required, this will be done automatically
+    #         PI = 3.14159
+    #         orients = (0, PI/2, PI, -PI/2)
+    #         # orients = (PI/2, PI, -PI/2)
+            
+    #         startConfig = Pose2D()
+    #         startConfig.x = startNode.val[0]
+    #         startConfig.y = startNode.val[1]
+    #         startConfig.theta = startNode.theta
+    #         goalConfig = Pose2D()
+    #         goalConfig.x = goalLoc[0]
+    #         goalConfig.y = goalLoc[1]
+            
+    #         allowedOrients = np.array([])
+    #         chkFlag = False
+    #         retTh = None
+    #         pdb.set_trace()
+    #         for th in orients:
+    #             goalConfig.theta = th
+    #             tmpFlag = check_srv(startConfig, goalConfig)
+    #             if(tmpFlag.valid):
+    #                 chkFlag = True
+    #                 allowedOrients = np.append(allowedOrients, th)
 
-                
-                ### Temporary code to get path to cross narrow gaps
-                finalNode = None
-                if(sampleNode.val[0] >= 0.38):
-                    finalNode = sampleNode
-                    break
+    #         if(chkFlag):
+    #             if(len(allowedOrients) == 1):
+    #                 retTh = allowedOrients[0]
+    #             else:
+    #                 # Pick the theta that's the closest to existing configuration
+    #                 diffTh = np.abs( startNode.theta - allowedOrients )
+    #                 idx = np.argmin(diffTh)
+    #                 retTh = allowedOrients[idx]
 
-                # Check if this node can reach goal node
-                goal = (xGoal, yGoal)
-                chkFlag, allowedTh = checkOrientations(sampleNode, goal)
-                if(chkFlag):
-                    goalNode = createRRTNode(goal)
-                    goalNode.theta = allowedTh
+    # ############ chksrvEnd
+
+
+            # print("CHKOUT::", chkFlag, allowedTh, sampleNode.val)
+            if(chkFlag):
+            # if(1):
+                for allowedTh in allowedOrients:
+                    sampleNode.theta = allowedTh
                     rrt.insert(sampleNode)
-                    goalFound = True
-                    break
-                ctr += 1 # To generate unique ID for multiple points if generated
-        else:
-            # print(">>> Unable to use point. CHKFLG False: ", str(sample) + ", ", str(sampleNode.theta))
-            markPt = createMarkerPoint(sampleNode, failCtr, color=(0, 0, 1.0), ns="rrt_CHK_fail_sample", lifetime=10)
-            marks.markers.append(markPt)
-            failCtr += 1
+                    markPt = createMarkerPoint(sampleNode, ctr)
+                    markLine = createMarkerLine(closestNode, sampleNode, ctr)
+                    marks.markers.append(markPt)
+                    marks.markers.append(markLine)
+                    ctr += 1 # To generate unique ID for multiple points if generated
+                    
+                    # ### Temporary code to get path to cross narrow gaps
+                    # finalNode = None
+                    # if(sampleNode.val[0] >= 0.38):
+                    #     finalNode = sampleNode
+                    #     break
 
-        time.sleep(0.05)
-        markerPub.publish(marks)
-    #markerPub.publish(marks)
+                    # Check if this node can reach goal node
+                    goal = (xGoal, yGoal)
+                    # Artificially restrict the direct goal check distance to that allowed by tree
+                    if(userUtils.distance(sampleNode.val, goal) <= distExtend):
+                        ### goalTest()
+                        chkFlag, allowedTh = checkOrientations(sampleNode, goal)
+                        if(chkFlag):
+                            goalNode = createRRTNode(goal)
+                            goalNode.theta = allowedTh
+                            rrt.insert(sampleNode)
+                            goalFound = True
+                            break
+                        ### goalTest() end
+                    else:
+                        goalFound = False
+
+            else:
+                # print(">>> Unable to use point. CHKFLG False: ", str(sample) + ", ", str(sampleNode.theta))
+                markPt = createMarkerPoint(sampleNode, failCtr, color=(0, 0, 1.0), ns="rrt_CHK_fail_sample", lifetime=10)
+                marks.markers.append(markPt)
+                failCtr += 1
+
+            time.sleep(0.05)
+            markerPub.publish(marks)
+
+        #markerPub.publish(marks)
+        if(not goalFound):
+            print("GOALLLLLLLLLLLLLL NOT FOUND YET")
+            # markPt = createMarkerPoint(sampleNode, failCtr, color=(0, 0, 1.0), ns="rrt_CHK_fail_sample", lifetime=10, action='delall')
+            # markLine = createMarkerLine(closestNode, sampleNode, ctr, action='delall')
+            goal = (xGoal, yGoal)
+            goalNode = createRRTNode(goal)
+            startNode, distFlag, path, treeType = rrt.search(goalNode, 0.001)
+            rrtX = startNode.val[0]
+            rrtY = startNode.val[1]
+        else:
+            print("FOUND THE GOALLLLLLLLLLLLLL")
+        
+        mainCtr += 1
+
 
     ### Temporary code to get path to cross narrow gaps
     if(finalNode is not None):
@@ -422,6 +456,7 @@ def plan_to_goal(req):
                 print(p.val, p.theta)
         else:
             print("Path not found.")
+
 
     # Send sequence of moves to goal
     _, distFlag, path, _ = rrt.search(sampleNode, 0.001, getPath=True)
