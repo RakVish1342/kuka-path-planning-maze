@@ -1,9 +1,12 @@
 import pdb
 import copy
+import math
 import numpy as np
 
-def distance(pt1, pt2):
-    dist = ( (pt1[0]-pt2[0])**2 + (pt1[1]-pt2[1])**2 )**0.5
+def distance(pt1, pt2, ang1=0.0, ang2=0.0, unitDist=0.0):
+    angleNormalization = unitDist * ( math.pi / (2*math.pi) )
+    dist = ( (pt1[0]-pt2[0])**2 + (pt1[1]-pt2[1])**2 + ( angleNormalization*(ang1-ang2) )**2 )**0.5
+    # OR drop theta in square root and just add that part individually: dist += abs( angleNormalization*(ang1-ang2) )
     return dist
 
 # Binary Node
@@ -131,6 +134,8 @@ class KDTree:
                 path.append(node)
 
             dist = distance(node.val, nodeSearch.val)
+            # dist = distance(node.val, nodeSearch.val, node.theta, nodeSearch.theta, unitDist=0.01)
+
             if(dist <= distThresh):
                 # Don't just directly concider the first point to be the closest/valid point. 
                 # Multiple may satisfy distance requirement. So add all that satisfy to a list
@@ -183,6 +188,8 @@ class KDTree:
 
             # send out min of both of these trees
             if(distance(nodeSearch.val, nodeX.val) <= distance(nodeSearch.val, nodeY.val)):
+            # if(distance(nodeSearch.val, nodeX.val, nodeSearch.theta, nodeX.theta, unitDist=0.01) 
+            #     <= distance(nodeSearch.val, nodeY.val, nodeSearch.theta, nodeY.theta, unitDist=0.01)):
                 node = nodeX
                 distFlag = distFlagX
                 path = pathX

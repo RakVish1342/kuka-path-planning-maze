@@ -265,7 +265,7 @@ def plan_to_goal(req):
         maxTriesLimit = 200
         totSamples = 200
         radiusIncBatch = 100
-        
+
         distUnit = 0.01
         distSearch = 5*distUnit # is the min resolution allowed by rll SDK
         distExtend = 2*distSearch
@@ -304,7 +304,9 @@ def plan_to_goal(req):
                 sample, maxTriesFlag, _ = pointFromPeri(radiusInner, radiusOuter, center, limits, maxTriesLimit, maxTriesFlag)
             else:
                 sample = goal
-            sampleNode = createRRTNode(sample)
+            # sampleNode = createRRTNode(sample)
+            sampleNode = createRRTNode(sample, theta=rrtTh) # by default take start node's theta
+
 
             if (maxTriesFlag): # Failed to generate points. Reached limit. Start generating points over full domain now
                 # print(">>> Reached the domain limit. Using entire domain now.")
@@ -321,7 +323,34 @@ def plan_to_goal(req):
 
             ## Add a reachability check before inserting into rrt
             ## Add orientation check
-            chkFlag, allowedOrients = checkOrientations(closestNode, sampleNode.val)
+            # chkFlag, allowedOrients = checkOrientations(closestNode, sampleNode.val)
+            ##### checkOrientations()
+            orients = (0, math.pi/2, math.pi, -math.pi/2)
+            # orients = (0, math.pi/4, math.pi/2, 3*math.pi/4, math.pi, -math.pi/4, -math.pi/2, -3*math.pi/4)
+            
+            startNode = closestNode
+            goalLoc = sampleNode.val
+            startConfig = Pose2D()
+            startConfig.x = startNode.val[0]
+            startConfig.y = startNode.val[1]
+            startConfig.theta = startNode.theta
+            goalConfig = Pose2D()
+            goalConfig.x = goalLoc[0]
+            goalConfig.y = goalLoc[1]
+            
+            # allowedOrients = np.array([])
+            allowedOrients = []
+            chkFlag = False
+            retTh = None
+            for th in orients:
+                goalConfig.theta = th
+                tmpFlag = check_srv(startConfig, goalConfig)
+                if(tmpFlag.valid):
+                    chkFlag = True
+                    # allowedOrients = np.append(allowedOrients, th)
+                    allowedOrients.append(th)
+
+            ##### checkOrientations() end
 
             if(chkFlag):
                 for allowedTh in allowedOrients:
@@ -337,7 +366,7 @@ def plan_to_goal(req):
                     goalFound = False
                     # Artificially restrict the direct goal check distance to that allowed by tree
                     if(userUtils.distance(sampleNode.val, goal) <= distExtend):
-                        # pdb.set_trace()
+                    # if(userUtils.distance(sampleNode.val, goal, sampleNode.theta, tGoal, unitDist=distUnit) <= distExtend):
                         ### goalTest()
                         chkFlag, allowedTh = checkOrientations(sampleNode, goal)
                         if(chkFlag):
@@ -370,10 +399,11 @@ def plan_to_goal(req):
 
         goalNode = createRRTNode(goal)
         pdb.set_trace()
-        startNode, distFlag, path, _ = rrt.search(goalNode, 0.001, getPath=True)
-        rrtX = startNode.val[0]
-        rrtY = startNode.val[1]
-        rrtTh = startNode.theta
+        sn, df, pa, pt = rrt.search(goalNode, 0.001, getPath=True) ### tmp line for pdb evaluation
+        tmpStartNode, distFlag, path, _ = rrt.search(goalNode, 0.001, getPath=True)
+        rrtX = tmpStartNode.val[0]
+        rrtY = tmpStartNode.val[1]
+        rrtTh = tmpStartNode.theta
 
         ### Move incrementally
         ctr = 0
@@ -388,6 +418,10 @@ def plan_to_goal(req):
                 print(">>> Error moving. Nodes may be too close. Going to next node in sequence. : ", p.val)
             ctr += 1
         ###
+
+        pdb.set_trace()
+        startNode = tmpStartNode ### for debugging purpose so that it doesn't get overwrittern
+
 
         ### If goal actually reached, exit
         if(path is not None):
