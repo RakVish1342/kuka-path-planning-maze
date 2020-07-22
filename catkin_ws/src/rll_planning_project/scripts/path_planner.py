@@ -270,19 +270,21 @@ def plan_to_goal(req):
         distCorrection = 0.3 # Later for RRT*
 
         # Initialize kdtree with root at start location 
-        rrt = userUtils.KDTree(value=center, theta=tStart)
-        mark = createMarkerPoint(rrt.root, ctr, color=(0, 1.0, 0))
+        rrt = userUtils.KDTree(value=center, theta=tStart, doubleTree=True)
+        if(not rrt.doubleTree):
+            mark = createMarkerPoint(rrt.root, ctr, color=(0, 1.0, 0))
+        else:
+            mark = createMarkerPoint(rrt.xroot, ctr, color=(0, 1.0, 0))
         marks.markers.append(mark)
 
         # while(not manualFlag):
         # while(ctr < totSamples or (not bReachedGoal) ):
         while(ctr < totSamples):    
-            # print("===>"+str(ctr))
+            print("===>"+str(ctr))
 
             # Sample a point
             if( (not maxTriesFlag) and ctr % radiusIncBatch == 0):
-                # print(">>> Domain Expanded")
-                print("===:"+str(ctr))            
+                print(">>> Domain Expanded")
                 radiusInner = radiusOuter # Comment out to use full domain so far
                 radiusOuter += radiusInc
                 # radiusIncBatch = radiusIncBatch + ( radiusIncBatch + int(0.02*radiusIncBatch) )
@@ -350,21 +352,22 @@ def plan_to_goal(req):
                 marks.markers.append(markPt)
                 failCtr += 1
 
-            time.sleep(0.05)
+            # time.sleep(0.05)
             markerPub.publish(marks)
 
         #markerPub.publish(marks)
 
         if(not goalFound):
-            print("GOALLLLLLLLLLLLLL NOT FOUND YET")
+            print("GOAL NOT FOUND YET")
         else:
-            print("FOUND THE GOALLLLLLLLLLLLLL")
+            print("FOUND THE GOAL")
 
         markPt = createMarkerPoint(sampleNode, failCtr, color=(0, 0, 1.0), lifetime=10, action='delall')
         markLine = createMarkerLine(closestNode, sampleNode, ctr, action='delall')
         markPt = createMarkerPoint(sampleNode, failCtr, color=(0, 0, 1.0), ns="rrt_CHK_fail_sample", lifetime=10, action='delall')
 
         goalNode = createRRTNode(goal)
+        pdb.set_trace()
         startNode, distFlag, path, _ = rrt.search(goalNode, 0.001, getPath=True)
         rrtX = startNode.val[0]
         rrtY = startNode.val[1]
@@ -386,42 +389,10 @@ def plan_to_goal(req):
         ### If goal actually reached, exit
         if(path is not None):
             if(path[-1].val == goal):
-                print("Moved to goal. Exiting")
+                print("MOVED TO GOAL. EXITING.")
                 break
         
         mainCtr += 1
-
-
-    # # Send sequence of moves to goal
-    # _, distFlag, path, _ = rrt.search(sampleNode, 0.001, getPath=True)
-    # ctr = 0
-    # while( ctr<len(path) ):
-    #     p = path[ctr]
-    #     pose = Pose2D()
-    #     pose.x = p.val[0]
-    #     pose.y = p.val[1]
-    #     pose.theta = p.theta
-    #     resp = move_srv(pose)
-    #     if(not resp.success):
-    #         print(">>> Error moving: ", p.val)
-    #     else:
-    #         ctr += 1
-               
-
-    # # Output: movement commands
-    # pose_check_start.x, pose_check_start.y, pose_check_start.theta= xStart, yStart, tStart
-    # pose_check_goal.x, pose_check_goal.y, pose_check_goal.theta= xGoal, yGoal, tGoal
-    # resp = check_srv(pose_check_start, pose_check_goal) # checking if the arm can move to the goal pose
-    # if resp.valid:
-    #     rospy.loginfo("Valid pose")
-    #     pose_move.x, pose_move.y, pose_move.theta = xGoal, yGoal, tGoal 
-    #     # executing a move command towards the goal pose
-    #     resp = move_srv(pose_move)
-    # else:
-    #     rospy.loginfo("Invalid pose")
-
-
-
 
     print("===")
     print("RRT Done.")
