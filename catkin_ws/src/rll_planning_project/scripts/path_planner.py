@@ -239,11 +239,12 @@ def plan_to_goal(req):
 
     rrtX = xStart
     rrtY = yStart
+    goalFound = False
 
     # manualFlag = False
     mainCtr = 0
     mainCtrMax = 30
-    while(mainCtr <= mainCtrMax):
+    while(mainCtr <= mainCtrMax or (not goalFound) ):
 
         # Incremental Domain Expansion
         center = (rrtX, rrtY)
@@ -266,7 +267,6 @@ def plan_to_goal(req):
         distSearch = 0.05
         distExtend = 2*distSearch
         distCorrection = 0.3 # Later for RRT*
-        bReachedGoal = False
 
         # Initialize kdtree with root at start location 
         rrt = userUtils.KDTree(value=center, theta=tStart)
@@ -327,6 +327,7 @@ def plan_to_goal(req):
                     
                     # Check if this node can reach goal node
                     goal = (xGoal, yGoal)
+                    goalFound = False
                     # Artificially restrict the direct goal check distance to that allowed by tree
                     if(userUtils.distance(sampleNode.val, goal) <= distExtend):
                         ### goalTest()
@@ -338,8 +339,6 @@ def plan_to_goal(req):
                             goalFound = True
                             break
                         ### goalTest() end
-                    else:
-                        goalFound = False
 
             else:
                 # print(">>> Unable to use point. CHKFLG False: ", str(sample) + ", ", str(sampleNode.theta))
