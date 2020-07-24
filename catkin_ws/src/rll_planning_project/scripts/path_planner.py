@@ -323,35 +323,8 @@ def plan_to_goal(req):
 
             ## Add a reachability check before inserting into rrt
             ## Add orientation check
-            # chkFlag, allowedOrients = checkOrientations(closestNode, sampleNode.val)
-            ##### checkOrientations()
-            orients = (0, math.pi/2, math.pi, -math.pi/2)
-            # orients = (0, math.pi/4, math.pi/2, 3*math.pi/4, math.pi, -math.pi/4, -math.pi/2, -3*math.pi/4)
+            chkFlag, allowedOrients = checkOrientations(closestNode, sampleNode.val)
             
-            startNode = closestNode
-            goalLoc = sampleNode.val
-            startConfig = Pose2D()
-            startConfig.x = startNode.val[0]
-            startConfig.y = startNode.val[1]
-            startConfig.theta = startNode.theta
-            goalConfig = Pose2D()
-            goalConfig.x = goalLoc[0]
-            goalConfig.y = goalLoc[1]
-            
-            # allowedOrients = np.array([])
-            allowedOrients = []
-            chkFlag = False
-            retTh = None
-            for th in orients:
-                goalConfig.theta = th
-                tmpFlag = check_srv(startConfig, goalConfig)
-                if(tmpFlag.valid):
-                    chkFlag = True
-                    # allowedOrients = np.append(allowedOrients, th)
-                    allowedOrients.append(th)
-
-            ##### checkOrientations() end
-
             if(chkFlag):
                 for allowedTh in allowedOrients:
                     sampleNode.theta = allowedTh
@@ -389,7 +362,7 @@ def plan_to_goal(req):
             # time.sleep(0.05)
             markerPub.publish(marks)
 
-        #markerPub.publish(marks)
+        # markerPub.publish(marks)
 
         if(not goalFound):
             print("GOAL NOT FOUND YET")
@@ -401,36 +374,21 @@ def plan_to_goal(req):
         markPt = createMarkerPoint(sampleNode, failCtr, color=(0, 0, 1.0), ns="rrt_CHK_fail_sample", lifetime=10, action='delall')
 
         goalNode = createRRTNode(goal)
-        pdb.set_trace()
-        sn, df, pa, pt = rrt.search(goalNode, 0.001, getPathKD=True) ### tmp line for pdb evaluation
-        tmpStartNode, distFlag, pathKD, _ = rrt.search(goalNode, 0.001, getPathKD=True)
-        rrtX = tmpStartNode.val[0]
-        rrtY = tmpStartNode.val[1]
-        rrtTh = tmpStartNode.theta
-
-        # ### Move incrementally
-        # ctr = 0
-        # while( ctr<len(pathKD) ):
-        #     p = pathKD[ctr]
-        #     pose = Pose2D()
-        #     pose.x = p.val[0]
-        #     pose.y = p.val[1]
-        #     pose.theta = p.theta
-        #     resp = move_srv(pose)
-        #     if(not resp.success):
-        #         print(">>> Error moving. Nodes may be too close. Going to next node in sequence. : ", p.val)
-        #     ctr += 1
-        # ###
+        startNode, distFlag, pathKD, _ = rrt.search(goalNode, 0.001, getPathKD=True)
+        rrtX = startNode.val[0]
+        rrtY = startNode.val[1]
+        rrtTh = startNode.theta
 
         ### Move incrementally
-        # Now, we need to extract path to go to the new start node from it.
+        # Extract path to go to the new start node from it.
         path = []
-        path.append(tmpStartNode)
-        parent = tmpStartNode.parentInPath
+        path.append(startNode)
+        parent = startNode.parentInPath
         while(not (parent==None)):
             path.append(parent)
             parent = parent.parentInPath
-        # Move to the new tmpStartNode location
+        # Move to the new startNode location
+        print(">>> Moving arm to new location.")
         for ctr in range(len(path)-1, 0, -1): # Backward loop
             # print(p.val)
             p = path[ctr]
@@ -440,18 +398,9 @@ def plan_to_goal(req):
             pose.theta = p.theta
             resp = move_srv(pose)
             if(not resp.success):
-                print(">>> Error moving. Nodes may be too close. Going to next node in sequence. : ", p.val)
+                print(">>> Error moving to a particular node. Nodes may be too close. Going to next node in sequence. : ", p.val)
         ###
 
-
-        pdb.set_trace()
-        startNode = tmpStartNode ### for debugging purpose so that it doesn't get overwrittern
-
-        ### If goal actually reached, exit
-        # if(pathKD is not None):
-        #     if(pathKD[-1].val == goal):
-        #         print("MOVED TO GOAL. EXITING.")
-        #         break
         if(path is not None):
             if(pathKD[0].val == goal): # path stores path in opposite direction, so if first element in goal
                 print("MOVED TO GOAL. EXITING.")
