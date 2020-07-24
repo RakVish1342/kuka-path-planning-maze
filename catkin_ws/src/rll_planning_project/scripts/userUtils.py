@@ -18,6 +18,7 @@ class Node:
         self.depth = depth
         self.childLeft = None
         self.childRight = None
+        self.parentInPath = None
 
 class KDTree:
 
@@ -100,7 +101,7 @@ class KDTree:
     Same implementation as insert, except that in the end the latest searched node is returned
     and a flag is sent back. (if the node returned is within the given threshold or is just the closest point)
     '''
-    def searchHelper(self, nodeSearch, distThresh, getPath=False, rootAxis='x'):
+    def searchHelper(self, nodeSearch, distThresh, getPathKD=False, rootAxis='x'):
 
         ## Will there be duplicate value entries?? But with different theta values??
         ## Change distance metric to account for this if so
@@ -119,7 +120,7 @@ class KDTree:
         nodes = []
         dists = []
         distFlag = False
-        if(getPath):
+        if(getPathKD):
             path = []
         else:
             path = None
@@ -130,7 +131,7 @@ class KDTree:
             nodeSearch.depth = depth
             dim = dim % 2
             
-            if(getPath):
+            if(getPathKD):
                 path.append(node)
 
             dist = distance(node.val, nodeSearch.val)
@@ -178,13 +179,13 @@ class KDTree:
 
         return (node, distFlag, path)
 
-    def search(self, nodeSearch, distThresh, getPath=False, rootAxis='x'):
+    def search(self, nodeSearch, distThresh, getPathKD=False, rootAxis='x'):
         if(not self.doubleTree):
-            node, distFlag, path = self.searchHelper(nodeSearch, distThresh, getPath, rootAxis='x')
+            node, distFlag, path = self.searchHelper(nodeSearch, distThresh, getPathKD, rootAxis='x')
             treeType = 'x'
         else:
-            nodeX, distFlagX, pathX = self.searchHelper(nodeSearch, distThresh, getPath, rootAxis='x')
-            nodeY, distFlagY, pathY = self.searchHelper(nodeSearch, distThresh, getPath, rootAxis='y')
+            nodeX, distFlagX, pathX = self.searchHelper(nodeSearch, distThresh, getPathKD, rootAxis='x')
+            nodeY, distFlagY, pathY = self.searchHelper(nodeSearch, distThresh, getPathKD, rootAxis='y')
 
             # send out min of both of these trees
             if(distance(nodeSearch.val, nodeX.val) <= distance(nodeSearch.val, nodeY.val)):
