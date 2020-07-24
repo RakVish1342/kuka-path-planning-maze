@@ -355,6 +355,7 @@ def plan_to_goal(req):
             if(chkFlag):
                 for allowedTh in allowedOrients:
                     sampleNode.theta = allowedTh
+                    sampleNode.parentInPath = closestNode
                     rrt.insert(sampleNode)
                     markPt = createMarkerPoint(sampleNode, ctr)
                     markLine = createMarkerLine(closestNode, sampleNode, ctr)
@@ -372,7 +373,9 @@ def plan_to_goal(req):
                         if(chkFlag):
                             goalNode = createRRTNode(goal)
                             goalNode.theta = allowedTh
-                            rrt.insert(sampleNode)
+                            goalNode.parentInPath = sampleNode
+                            # rrt.insert(sampleNode)
+                            rrt.insert(goalNode)
                             goalFound = True
                             break
                         ### goalTest() end
@@ -399,15 +402,37 @@ def plan_to_goal(req):
 
         goalNode = createRRTNode(goal)
         pdb.set_trace()
-        sn, df, pa, pt = rrt.search(goalNode, 0.001, getPath=True) ### tmp line for pdb evaluation
-        tmpStartNode, distFlag, path, _ = rrt.search(goalNode, 0.001, getPath=True)
+        sn, df, pa, pt = rrt.search(goalNode, 0.001, getPathKD=True) ### tmp line for pdb evaluation
+        tmpStartNode, distFlag, pathKD, _ = rrt.search(goalNode, 0.001, getPathKD=True)
         rrtX = tmpStartNode.val[0]
         rrtY = tmpStartNode.val[1]
         rrtTh = tmpStartNode.theta
 
+        # ### Move incrementally
+        # ctr = 0
+        # while( ctr<len(pathKD) ):
+        #     p = pathKD[ctr]
+        #     pose = Pose2D()
+        #     pose.x = p.val[0]
+        #     pose.y = p.val[1]
+        #     pose.theta = p.theta
+        #     resp = move_srv(pose)
+        #     if(not resp.success):
+        #         print(">>> Error moving. Nodes may be too close. Going to next node in sequence. : ", p.val)
+        #     ctr += 1
+        # ###
+
         ### Move incrementally
-        ctr = 0
-        while( ctr<len(path) ):
+        # Now, we need to extract path to go to the new start node from it.
+        path = []
+        path.append(tmpStartNode)
+        parent = tmpStartNode.parentInPath
+        while(not (parent==None)):
+            path.append(parent)
+            parent = parent.parentInPath
+        # Move to the new tmpStartNode location
+        for ctr in range(len(path)-1, 0, -1): # Backward loop
+            # print(p.val)
             p = path[ctr]
             pose = Pose2D()
             pose.x = p.val[0]
@@ -416,16 +441,19 @@ def plan_to_goal(req):
             resp = move_srv(pose)
             if(not resp.success):
                 print(">>> Error moving. Nodes may be too close. Going to next node in sequence. : ", p.val)
-            ctr += 1
         ###
+
 
         pdb.set_trace()
         startNode = tmpStartNode ### for debugging purpose so that it doesn't get overwrittern
 
-
         ### If goal actually reached, exit
+        # if(pathKD is not None):
+        #     if(pathKD[-1].val == goal):
+        #         print("MOVED TO GOAL. EXITING.")
+        #         break
         if(path is not None):
-            if(path[-1].val == goal):
+            if(pathKD[0].val == goal): # path stores path in opposite direction, so if first element in goal
                 print("MOVED TO GOAL. EXITING.")
                 break
         
