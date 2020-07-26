@@ -1,3 +1,5 @@
+### Kuka RRT Path Planner
+
 ```
 roslaunch rll_planning_project moveit_planning_execution.launch
 roslaunch rll_planning_project planning_iface.launch
@@ -12,4 +14,4 @@ source devel/setup.bash
 ```
 
 
-rviz
+rviz save or Adding markerArray topic to rviz
