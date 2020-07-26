@@ -145,7 +145,7 @@ def plan_to_goal(_arg):
         ## Do something about orientation having to be maintained similar to previous orientations...OR I think since
         # poses are required, this will be done automatically. OR can be added as a componenet that calculates the distance
         # BUT since I'm considering all orientations rather than just closest, won't need to do any of this.
-        orients = (0, math.pi/2, math.pi, -math.pi/2)
+        orients = (0.0, math.pi/2, math.pi, -math.pi/2)
         # orients = (0, math.pi/4, math.pi/2, 3*math.pi/4, math.pi, -math.pi/4, -math.pi/2, -3*math.pi/4)
         
         startConfig = Pose2D()
@@ -300,9 +300,9 @@ def plan_to_goal(_arg):
 
                 # Visualize search domain
                 rrtNode = createRRTNode( (rrtX, rrtY) )
-                markerPt = createMarkerPoint(rrtNode, 999999, color=(1.0, 1.0, 1.0), opaque=0.2, ns="rrt_search_domain", scale=2*radiusOuter)
+                markerPt = createMarkerPoint(rrtNode, 999999, color=(1.0, 1.0, 1.0), opaque=0.4, ns="rrt_search_domain", scale=2*radiusOuter)
                 marks.markers.append(markerPt)
-                markerPt = createMarkerPoint(rrtNode, 999998, color=(1.0, 1.0, 1.0), opaque=0.4, ns="rrt_search_domain", scale=2*radiusInner)
+                markerPt = createMarkerPoint(rrtNode, 999998, color=(1.0, 1.0, 1.0), opaque=0.6, ns="rrt_search_domain", scale=2*radiusInner)
                 marks.markers.append(markerPt)
                
             ctr += 1
@@ -423,21 +423,7 @@ def plan_to_goal(_arg):
     ####################
 
 
-class PathPlanner:
-    def __init__(self):
-        self.server = actionlib.SimpleActionServer("plan_to_goal", PlanToGoalAction, self.execute, False)
-        self.server.start()
-
-    def execute(self, req):
-        plan_to_goal(req)
-        self.server.set_succeeded()
-
-
 if __name__ == '__main__':
     rospy.init_node('path_planner')
     client = RLLDefaultMoveClient(plan_to_goal)
     client.spin()
-
-    #server = PathPlanner()
-
-    #rospy.spin()
