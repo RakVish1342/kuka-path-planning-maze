@@ -1,7 +1,0 @@
-[
-{
-  "directory": "/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/build/rll_moveit_kinematics_plugin",
-  "command": "/usr/bin/c++  -DROSCONSOLE_BACKEND_LOG4CXX -DROS_BUILD_SHARED_LIBS=1 -DROS_PACKAGE_NAME=\\\"rll_moveit_kinematics_plugin\\\" -Drll_moveit_kinematics_plugin_EXPORTS -isystem /home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/src/rll_sdk/kinematics/rll_kinematics/include -isystem /opt/ros/melodic/include -isystem /opt/ros/melodic/share/orocos_kdl/cmake/../../../include -isystem /opt/ros/melodic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp -isystem /usr/include/eigen3 -I/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/src/rll_sdk/kinematics/rll_moveit_kinematics_plugin/include  -O3 -DNDEBUG -fPIC   -Wall -Wextra -Wpedantic -Wredundant-decls -Wshadow -Wcast-qual -Wfloat-equal -fno-unsafe-math-optimizations -std=c++14 -o CMakeFiles/rll_moveit_kinematics_plugin.dir/src/moveit_kinematics_plugin.cpp.o -c /home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/src/rll_sdk/kinematics/rll_moveit_kinematics_plugin/src/moveit_kinematics_plugin.cpp",
-  "file": "/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/src/rll_sdk/kinematics/rll_moveit_kinematics_plugin/src/moveit_kinematics_plugin.cpp"
-}
-]

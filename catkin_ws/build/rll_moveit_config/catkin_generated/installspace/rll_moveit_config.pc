@@ -1,8 +1,0 @@
-prefix=/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/install
-
-Name: rll_moveit_config
-Description: Description of rll_moveit_config
-Version: 0.3.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

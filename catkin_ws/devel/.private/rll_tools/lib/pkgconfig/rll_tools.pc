@@ -1,8 +1,0 @@
-prefix=/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/devel/.private/rll_tools
-
-Name: rll_tools
-Description: Description of rll_tools
-Version: 0.0.1
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: rll_msgs

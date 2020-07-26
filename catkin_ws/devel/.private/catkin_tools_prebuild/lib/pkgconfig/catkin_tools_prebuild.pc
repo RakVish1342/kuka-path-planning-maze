@@ -1,8 +1,0 @@
-prefix=/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/devel/.private/catkin_tools_prebuild
-
-Name: catkin_tools_prebuild
-Description: Description of catkin_tools_prebuild
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

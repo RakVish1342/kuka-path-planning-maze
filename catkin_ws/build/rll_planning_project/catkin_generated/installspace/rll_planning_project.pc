@@ -1,8 +1,0 @@
-prefix=/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/install
-
-Name: rll_planning_project
-Description: Description of rll_planning_project
-Version: 0.0.1
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib 
-Requires: geometry_msgs message_runtime rll_move_client rll_msgs std_msgs

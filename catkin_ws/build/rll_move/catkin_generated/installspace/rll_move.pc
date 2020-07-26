@@ -1,8 +1,0 @@
-prefix=/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/install
-
-Name: rll_move
-Description: Description of rll_move
-Version: 0.0.1
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib -lrll_move
-Requires: message_runtime moveit_ros_planning_interface rll_moveit_kinematics_plugin rll_msgs

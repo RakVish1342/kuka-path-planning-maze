@@ -1,8 +1,0 @@
-prefix=/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/install
-
-Name: rll_core
-Description: Description of rll_core
-Version: 0.0.1
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

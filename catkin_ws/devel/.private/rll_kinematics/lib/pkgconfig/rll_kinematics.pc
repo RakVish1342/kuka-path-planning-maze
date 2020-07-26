@@ -1,8 +1,0 @@
-prefix=/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/devel/.private/rll_kinematics
-
-Name: rll_kinematics
-Description: Description of rll_kinematics
-Version: 0.0.1
-Cflags: -I/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/src/rll_sdk/kinematics/rll_kinematics/include
-Libs: -L${prefix}/lib -lrll_kinematics
-Requires: rll_core
