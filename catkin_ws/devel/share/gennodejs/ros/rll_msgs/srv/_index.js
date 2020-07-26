@@ -1,14 +1,1 @@
-
-"use strict";
-
-let PickPlace = require('./PickPlace.js')
-let MovePTP = require('./MovePTP.js')
-let MoveJoints = require('./MoveJoints.js')
-let MoveLin = require('./MoveLin.js')
-
-module.exports = {
-  PickPlace: PickPlace,
-  MovePTP: MovePTP,
-  MoveJoints: MoveJoints,
-  MoveLin: MoveLin,
-};
+/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/devel/.private/rll_msgs/share/gennodejs/ros/rll_msgs/srv/_index.js

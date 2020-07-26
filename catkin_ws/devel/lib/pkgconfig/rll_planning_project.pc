@@ -1,8 +1,1 @@
-prefix=/home/robond/Documents/rakshith/ASU/summer2020/kukaBlockChallenge/home/catkin_ws/devel
-
-Name: rll_planning_project
-Description: Description of rll_planning_project
-Version: 0.0.1
-Cflags: -I/home/robond/Documents/rakshith/ASU/summer2020/kukaBlockChallenge/home/catkin_ws/devel/include
-Libs: -L${prefix}/lib 
-Requires: message_runtime rll_msgs
+/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/devel/.private/rll_planning_project/lib/pkgconfig/rll_planning_project.pc

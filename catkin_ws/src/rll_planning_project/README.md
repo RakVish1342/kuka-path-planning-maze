@@ -1,7 +1,6 @@
-[![Udacity - Robotics NanoDegree Program](https://s3-us-west-1.amazonaws.com/udacity-robotics/Extra+Images/RoboND_flag.png)](https://www.udacity.com/robotics)
+# Path Planning Project
 
-# RoboND-KUKAChallenge
-Solution for the KUKA [robotic arm challenge](https://www.udacity.com/robot-learning-lab) in collaboration with KUKA and the Learning Lab at KIT
+Project for the [path planning challenge](https://blog.udacity.com/2018/08/enter-the-kuka-robotics-challenge.html) in collaboration with KUKA and Udacity
 
 ## Goal and Basic Idea
 
@@ -24,16 +23,14 @@ While the students will be able to call ```Move``` and ```CheckPath```, the serv
 
 The time, that the student's implementation needs from start to finish, will be recorded, so that a ranking can be created.
 
-## Current State
-
-A rough version of the ```Move``` and ```CheckPath``` commands exists. A testing setup with a maze in the scene that can be used for initial prototyping.
+## Setup
 
 A workspace with the project can be set up with:
 ```
 mkdir ~/catkin_ws
 cd ~/catkin_ws
 catkin_init_workspace
-wstool init src https://gitlab.ipr.kit.edu/rll/rll_planning_project/raw/master/planning_project.rosinstall
+wstool init src https://raw.githubusercontent.com/kitrobotics/rll_path_planning_project/master/planning_project.rosinstall
 catkin build
 source devel/setup.bash
 ```
@@ -48,17 +45,11 @@ The Python node with the path planning algorithm is launched with:
 `roslaunch rll_planning_project path_planner.launch`
 
 A single planning and path execution run can be initiated with:   
-`roslaunch rll_project_runner run_project.launch`
+`roslaunch rll_tools run_project.launch`
 
-The example path planning code with a few hard-coded calls to the ```Move``` and ```CheckPath``` services can be found in ```./scripts/path_planner.py```.
+The example path planning code with exemplary calls to the ```Move``` and ```CheckPath``` services can be found in ```./scripts/path_planner.py```.
 
 The initial position and the dimensions of the grasp object can be changed in the launch file for the planning interface (```./launch/planning_iface.launch```). The parameters can also be altered on the command-line by passing them as arguments to the launch command.
-
-## TODO
-
-- ~design multiple mazes and figure out parameters that work (dimensions of cuboid, distance between walls of maze, height of walls)~
-- ~figure out a fitting discretization level and implement it~
-- record the time from start to goal and return it in the job_env service response
 
 ### Interface
 ![alt text](Images/Simulation.png)

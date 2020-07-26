@@ -1,14 +1,8 @@
 file(REMOVE_RECURSE
   "CMakeFiles/rll_planning_project_generate_messages_cpp"
-  "/home/robond/Documents/rakshith/ASU/summer2020/kukaBlockChallenge/home/catkin_ws/devel/include/rll_planning_project/PlanToGoalFeedback.h"
-  "/home/robond/Documents/rakshith/ASU/summer2020/kukaBlockChallenge/home/catkin_ws/devel/include/rll_planning_project/PlanToGoalActionGoal.h"
-  "/home/robond/Documents/rakshith/ASU/summer2020/kukaBlockChallenge/home/catkin_ws/devel/include/rll_planning_project/PlanToGoalAction.h"
-  "/home/robond/Documents/rakshith/ASU/summer2020/kukaBlockChallenge/home/catkin_ws/devel/include/rll_planning_project/PlanToGoalActionResult.h"
-  "/home/robond/Documents/rakshith/ASU/summer2020/kukaBlockChallenge/home/catkin_ws/devel/include/rll_planning_project/PlanToGoalGoal.h"
-  "/home/robond/Documents/rakshith/ASU/summer2020/kukaBlockChallenge/home/catkin_ws/devel/include/rll_planning_project/PlanToGoalActionFeedback.h"
-  "/home/robond/Documents/rakshith/ASU/summer2020/kukaBlockChallenge/home/catkin_ws/devel/include/rll_planning_project/PlanToGoalResult.h"
-  "/home/robond/Documents/rakshith/ASU/summer2020/kukaBlockChallenge/home/catkin_ws/devel/include/rll_planning_project/CheckPath.h"
-  "/home/robond/Documents/rakshith/ASU/summer2020/kukaBlockChallenge/home/catkin_ws/devel/include/rll_planning_project/Move.h"
+  "/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/devel/.private/rll_planning_project/include/rll_planning_project/GetStartGoal.h"
+  "/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/devel/.private/rll_planning_project/include/rll_planning_project/CheckPath.h"
+  "/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/devel/.private/rll_planning_project/include/rll_planning_project/Move.h"
 )
 
 # Per-language clean rules from dependency scanning.

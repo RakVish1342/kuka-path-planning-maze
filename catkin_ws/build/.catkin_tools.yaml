@@ -1,0 +1,6 @@
+devel_space: /home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/devel
+install: false
+install_space: /home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/install
+profile: default
+source_space: /home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/src
+workspace: /home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws

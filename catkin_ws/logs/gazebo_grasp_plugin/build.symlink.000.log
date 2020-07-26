@@ -1,0 +1,13 @@
+Symlinking /home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/devel/lib/libgazebo_grasp_fix.so
+Symlinking /home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/devel/lib/pkgconfig/gazebo_grasp_plugin.pc
+Symlinking /home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/devel/share/gazebo_grasp_plugin/cmake/gazebo_grasp_pluginConfig.cmake
+Symlinking /home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/devel/share/gazebo_grasp_plugin/cmake/gazebo_grasp_pluginConfig-version.cmake
+Cleaning: (/home/rxth/rakshith/tmp/tmpRll/catkin_ws/devel/.private/gazebo_grasp_plugin/cmake.lock, /home/rxth/rakshith/tmp/tmpRll/catkin_ws/devel/./cmake.lock)
+Cleaning: (/home/rxth/rakshith/tmp/tmpRll/catkin_ws/devel/.private/gazebo_grasp_plugin/lib/libgazebo_grasp_fix.so, /home/rxth/rakshith/tmp/tmpRll/catkin_ws/devel/lib/libgazebo_grasp_fix.so)
+Cleaning: (/home/rxth/rakshith/tmp/tmpRll/catkin_ws/devel/.private/gazebo_grasp_plugin/lib/pkgconfig/gazebo_grasp_plugin.pc, /home/rxth/rakshith/tmp/tmpRll/catkin_ws/devel/lib/pkgconfig/gazebo_grasp_plugin.pc)
+Cleaning: (/home/rxth/rakshith/tmp/tmpRll/catkin_ws/devel/.private/gazebo_grasp_plugin/share/gazebo_grasp_plugin/cmake/gazebo_grasp_pluginConfig.cmake, /home/rxth/rakshith/tmp/tmpRll/catkin_ws/devel/share/gazebo_grasp_plugin/cmake/gazebo_grasp_pluginConfig.cmake)
+Cleaning: (/home/rxth/rakshith/tmp/tmpRll/catkin_ws/devel/.private/gazebo_grasp_plugin/share/gazebo_grasp_plugin/cmake/gazebo_grasp_pluginConfig-version.cmake, /home/rxth/rakshith/tmp/tmpRll/catkin_ws/devel/share/gazebo_grasp_plugin/cmake/gazebo_grasp_pluginConfig-version.cmake)
+Unlinking: /home/rxth/rakshith/tmp/tmpRll/catkin_ws/devel/lib/libgazebo_grasp_fix.so
+Unlinking: /home/rxth/rakshith/tmp/tmpRll/catkin_ws/devel/lib/pkgconfig/gazebo_grasp_plugin.pc
+Unlinking: /home/rxth/rakshith/tmp/tmpRll/catkin_ws/devel/share/gazebo_grasp_plugin/cmake/gazebo_grasp_pluginConfig.cmake
+Unlinking: /home/rxth/rakshith/tmp/tmpRll/catkin_ws/devel/share/gazebo_grasp_plugin/cmake/gazebo_grasp_pluginConfig-version.cmake

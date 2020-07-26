@@ -1,6 +1,1 @@
-(cl:in-package rll_msgs-msg)
-(cl:export '(STATUS-VAL
-          STATUS
-          STATUS_DETAIL-VAL
-          STATUS_DETAIL
-))
+/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/devel/.private/rll_msgs/share/common-lisp/ros/rll_msgs/msg/_package_JobStatus.lisp

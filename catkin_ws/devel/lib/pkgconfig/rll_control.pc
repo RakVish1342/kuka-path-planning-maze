@@ -1,8 +1,1 @@
-prefix=/home/robond/Documents/rakshith/ASU/summer2020/kukaBlockChallenge/home/catkin_ws/devel
-
-Name: rll_control
-Description: Description of rll_control
-Version: 0.1.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 
+/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/devel/.private/rll_control/lib/pkgconfig/rll_control.pc

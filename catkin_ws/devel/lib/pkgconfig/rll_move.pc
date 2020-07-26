@@ -1,8 +1,1 @@
-prefix=/home/robond/Documents/rakshith/ASU/summer2020/kukaBlockChallenge/home/catkin_ws/devel
-
-Name: rll_move
-Description: Description of rll_move
-Version: 0.0.1
-Cflags: -I/home/robond/Documents/rakshith/ASU/summer2020/kukaBlockChallenge/home/catkin_ws/src/rll_sdk/rll_move/include
-Libs: -L${prefix}/lib -lrll_move
-Requires: message_runtime rll_msgs
+/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/devel/.private/rll_move/lib/pkgconfig/rll_move.pc

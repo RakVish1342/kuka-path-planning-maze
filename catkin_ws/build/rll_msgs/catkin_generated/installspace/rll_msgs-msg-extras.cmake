@@ -1,0 +1,2 @@
+set(rll_msgs_MESSAGE_FILES "msg/JobExtraField.msg;msg/JobStatus.msg;msg/JobEnvAction.msg;msg/JobEnvActionGoal.msg;msg/JobEnvActionResult.msg;msg/JobEnvActionFeedback.msg;msg/JobEnvGoal.msg;msg/JobEnvResult.msg;msg/JobEnvFeedback.msg")
+set(rll_msgs_SERVICE_FILES "srv/GetJointValues.srv;srv/GetPose.srv;srv/MoveJoints.srv;srv/MoveLin.srv;srv/MoveLinArmangle.srv;srv/MovePTP.srv;srv/MovePTPArmangle.srv;srv/MoveRandom.srv;srv/PickPlace.srv")

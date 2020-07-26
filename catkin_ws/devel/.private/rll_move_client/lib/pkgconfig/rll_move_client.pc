@@ -1,0 +1,8 @@
+prefix=/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/devel/.private/rll_move_client
+
+Name: rll_move_client
+Description: Description of rll_move_client
+Version: 0.0.1
+Cflags: -I/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/src/rll_sdk/rll_move_client/include
+Libs: -L${prefix}/lib -lrll_move_client
+Requires: rll_move rll_msgs

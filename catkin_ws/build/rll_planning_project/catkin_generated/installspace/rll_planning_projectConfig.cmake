@@ -67,14 +67,14 @@ set(rll_planning_project_CONFIG_INCLUDED TRUE)
 
 # set variables for source/devel/install prefixes
 if("FALSE" STREQUAL "TRUE")
-  set(rll_planning_project_SOURCE_PREFIX /home/robond/Documents/rakshith/ASU/summer2020/kukaBlockChallenge/home/catkin_ws/src/rll_planning_project)
-  set(rll_planning_project_DEVEL_PREFIX /home/robond/Documents/rakshith/ASU/summer2020/kukaBlockChallenge/home/catkin_ws/devel)
+  set(rll_planning_project_SOURCE_PREFIX /home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/src/rll_planning_project)
+  set(rll_planning_project_DEVEL_PREFIX /home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/devel/.private/rll_planning_project)
   set(rll_planning_project_INSTALL_PREFIX "")
   set(rll_planning_project_PREFIX ${rll_planning_project_DEVEL_PREFIX})
 else()
   set(rll_planning_project_SOURCE_PREFIX "")
   set(rll_planning_project_DEVEL_PREFIX "")
-  set(rll_planning_project_INSTALL_PREFIX /home/robond/Documents/rakshith/ASU/summer2020/kukaBlockChallenge/home/catkin_ws/install)
+  set(rll_planning_project_INSTALL_PREFIX /home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/install)
   set(rll_planning_project_PREFIX ${rll_planning_project_INSTALL_PREFIX})
 endif()
 
@@ -154,7 +154,7 @@ foreach(library ${libraries})
     set(lib_path "")
     set(lib "${library}-NOTFOUND")
     # since the path where the library is found is returned we have to iterate over the paths manually
-    foreach(path /home/robond/Documents/rakshith/ASU/summer2020/kukaBlockChallenge/home/catkin_ws/install/lib;/opt/ros/kinetic/lib)
+    foreach(path /home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/install/lib;/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/devel/lib;/opt/ros/melodic/lib)
       find_library(lib ${library}
         PATHS ${path}
         NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)
@@ -185,7 +185,7 @@ foreach(t ${rll_planning_project_EXPORTED_TARGETS})
   endif()
 endforeach()
 
-set(depends "message_runtime;rll_msgs")
+set(depends "geometry_msgs;message_runtime;rll_move_client;rll_msgs;std_msgs")
 foreach(depend ${depends})
   string(REPLACE " " ";" depend_list ${depend})
   # the package name of the dependency must be kept in a unique variable so that it is not overwritten in recursive calls

@@ -1,0 +1,26 @@
+
+(cl:in-package :asdf)
+
+(defsystem "rll_msgs-srv"
+  :depends-on (:roslisp-msg-protocol :roslisp-utils :geometry_msgs-msg
+)
+  :components ((:file "_package")
+    (:file "GetJointValues" :depends-on ("_package_GetJointValues"))
+    (:file "_package_GetJointValues" :depends-on ("_package"))
+    (:file "GetPose" :depends-on ("_package_GetPose"))
+    (:file "_package_GetPose" :depends-on ("_package"))
+    (:file "MoveJoints" :depends-on ("_package_MoveJoints"))
+    (:file "_package_MoveJoints" :depends-on ("_package"))
+    (:file "MoveLin" :depends-on ("_package_MoveLin"))
+    (:file "_package_MoveLin" :depends-on ("_package"))
+    (:file "MoveLinArmangle" :depends-on ("_package_MoveLinArmangle"))
+    (:file "_package_MoveLinArmangle" :depends-on ("_package"))
+    (:file "MovePTP" :depends-on ("_package_MovePTP"))
+    (:file "_package_MovePTP" :depends-on ("_package"))
+    (:file "MovePTPArmangle" :depends-on ("_package_MovePTPArmangle"))
+    (:file "_package_MovePTPArmangle" :depends-on ("_package"))
+    (:file "MoveRandom" :depends-on ("_package_MoveRandom"))
+    (:file "_package_MoveRandom" :depends-on ("_package"))
+    (:file "PickPlace" :depends-on ("_package_PickPlace"))
+    (:file "_package_PickPlace" :depends-on ("_package"))
+  ))

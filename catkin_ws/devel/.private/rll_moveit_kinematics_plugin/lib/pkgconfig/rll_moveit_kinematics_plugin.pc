@@ -1,0 +1,8 @@
+prefix=/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/devel/.private/rll_moveit_kinematics_plugin
+
+Name: rll_moveit_kinematics_plugin
+Description: Description of rll_moveit_kinematics_plugin
+Version: 0.0.1
+Cflags: -I/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/src/rll_sdk/kinematics/rll_moveit_kinematics_plugin/include
+Libs: -L${prefix}/lib -lrll_moveit_kinematics_plugin
+Requires: rll_kinematics

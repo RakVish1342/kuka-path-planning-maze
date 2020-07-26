@@ -1,8 +1,1 @@
-prefix=/home/robond/Documents/rakshith/ASU/summer2020/kukaBlockChallenge/home/catkin_ws/devel
-
-Name: rll_moveit_config
-Description: Description of rll_moveit_config
-Version: 0.3.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 
+/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/devel/.private/rll_moveit_config/lib/pkgconfig/rll_moveit_config.pc

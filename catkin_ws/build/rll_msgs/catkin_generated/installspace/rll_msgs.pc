@@ -1,0 +1,8 @@
+prefix=/home/rxth/rakshith/data/work/asu/summer2020/kuka-path-planning-maze/catkin_ws/install
+
+Name: rll_msgs
+Description: Description of rll_msgs
+Version: 0.0.1
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib 
+Requires: actionlib actionlib_msgs geometry_msgs message_runtime rll_core std_msgs std_srvs
