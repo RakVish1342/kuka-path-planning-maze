@@ -2,7 +2,8 @@
 
 This project uses the RRT path planning algorithm to move a kuka 6-DoF robotic arm around a maze. The green cube represents the start location and the red node represents the goal location. The arm initially picks up the block at the start location, moves it along the maze till the goal location using the RRT and then returns the block to the start position. The MoveIt package has been made use of.
 
-<img src="./gifs/kukaEnv.gif" height="300" width="600" />
+<img src="./gifs/kukaEnv.gif" height="300" width="400" /> 
+
 
 #### Usage:
 
@@ -27,6 +28,9 @@ roslaunch rll_tools run_project.launch
 
 A ```MarkerArray``` containing nodes from the RRT are published to the ```/rrt/samples``` topic. 
 So to view the RRT on the table top, once all four roslaunch commands have been run, add ```MarkerArray``` to RViz and select the ```/rrt/samples``` topic to view markers.
+
+
+<img src="./gifs/kuka_rrt.gif" height="300" width="400" />
 
 
 **Configuration File:**
@@ -85,11 +89,6 @@ while(goal_not_reached):
 
 
 ````
-
-#### Result:
-
-<img src="./gifs/kuka_rrt.gif" height="300" width="600" />
-
 
 #### Further Improvements:
 
